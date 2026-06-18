@@ -27,9 +27,9 @@ class SyncController extends Controller
                 'display_name' => $source->display_name,
                 'group' => $source->group,
                 'connection' => $source->connection,
-                'source_table' => $source->source_table,
-                'target_table' => $source->target_table,
-                'columns' => array_keys($source->columns),
+                'query' => $source->query,
+                'resolver_class' => $source->resolver_class ? class_basename($source->resolver_class) : null,
+                'last_downloaded_at' => $source->last_downloaded_at?->toIso8601String(),
                 'last_synced_at' => $source->last_synced_at?->toIso8601String(),
                 'downloads' => $source->downloads->map(fn (SyncDownload $d) => [
                     'id' => $d->id,

@@ -7,11 +7,23 @@ use App\Models\SyncSource;
 interface ImportResolver
 {
     /**
-     * Transform a parsed row before it is upserted into the target table.
-     *
-     * @param  array<string, string|null>  $row  row keyed by TARGET column (after column mapping)
-     * @param  array<string, string|null>  $source  raw row keyed by SOURCE column (pre-mapping)
-     * @return array<string, mixed>|null final row to upsert, or null to skip the row
+     * The target table this resolver upserts into.
      */
-    public function resolve(array $row, array $source, SyncSource $syncSource): ?array;
+    public function table(): string;
+
+    /**
+     * The unique column(s) used as the upsert key (ON CONFLICT / ON DUPLICATE KEY).
+     *
+     * @return string|list<string>
+     */
+    public function uniqueBy(): string|array;
+
+    /**
+     * Map a parsed source row (keyed by the query's output columns) into a
+     * target-table row. Return null to skip the row.
+     *
+     * @param  array<string, string|null>  $row
+     * @return array<string, mixed>|null
+     */
+    public function map(array $row, SyncSource $source): ?array;
 }

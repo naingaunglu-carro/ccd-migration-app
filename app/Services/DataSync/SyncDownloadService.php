@@ -19,8 +19,11 @@ class SyncDownloadService
         $conn = $this->connection($source);
         $driver = $conn['driver'];
         $fileType = config("sync.drivers.{$driver}.file_type", 'tsv');
+        $select = $this->select($source); // resolved query — snapshotted on the row
 
         $download = $source->downloads()->create([
+            'connection' => $source->connection,
+            'query' => $select,
             'file_disk' => 'local',
             'file_type' => $fileType,
             'status' => SyncStatus::RUNNING,
@@ -30,7 +33,7 @@ class SyncDownloadService
         try {
             [$absolute, $name] = $this->resolvePath($source, $download, $fileType);
 
-            $this->run($source, $conn, $absolute);
+            $this->run($conn, $select, $absolute);
 
             $download->forceFill([
                 'status' => SyncStatus::COMPLETED,
@@ -41,6 +44,8 @@ class SyncDownloadService
                 'row_count' => $this->countDataRows($absolute),
                 'finished_at' => Carbon::now(),
             ])->save();
+
+            $source->forceFill(['last_downloaded_at' => Carbon::now()])->save();
         } catch (\Throwable $e) {
             $download->forceFill([
                 'status' => SyncStatus::FAILED,
@@ -59,10 +64,10 @@ class SyncDownloadService
      *
      * @param  array<string, mixed>  $conn
      */
-    protected function run(SyncSource $source, array $conn, string $path): void
+    protected function run(array $conn, string $select, string $path): void
     {
         $process = new Process(
-            $this->command($source, $conn),
+            $this->command($select, $conn),
             timeout: null,
             env: $this->env($conn),
         );
@@ -96,12 +101,11 @@ class SyncDownloadService
      * @param  array<string, mixed>  $conn
      * @return list<string>
      */
-    protected function command(SyncSource $source, array $conn): array
+    protected function command(string $select, array $conn): array
     {
         $driver = $conn['driver'];
         $binary = config("sync.binaries.{$driver}", $driver);
         $flags = (array) config("sync.drivers.{$driver}.flags", []);
-        $select = $this->select($source);
 
         return match ($driver) {
             'mysql' => array_merge(
@@ -130,21 +134,18 @@ class SyncDownloadService
     }
 
     /**
-     * Resolve the SELECT statement: a source's custom query (override) or the
-     * generated "select {columns} from {source_table}".
+     * Resolve the source's SELECT statement, expanding placeholders.
      */
     protected function select(SyncSource $source): string
     {
-        if (! empty($source->query)) {
-            // Strip a trailing ";" — the pgsql path wraps this in \copy (...).
-            $query = rtrim(trim($source->query), ';');
-
-            return $this->resolvePlaceholders($query, $source);
+        if (empty($source->query)) {
+            throw new RuntimeException("Source [{$source->name}] has no query to export.");
         }
 
-        $columns = implode(', ', array_keys($source->columns));
+        // Strip a trailing ";" — the pgsql path wraps this in \copy (...).
+        $query = rtrim(trim($source->query), ';');
 
-        return "select {$columns} from {$source->source_table}";
+        return $this->resolvePlaceholders($query, $source);
     }
 
     /**
@@ -156,7 +157,6 @@ class SyncDownloadService
 
         return strtr($query, [
             '{{last_synced_at}}' => $lastSynced,
-            '{{table}}' => $source->source_table,
         ]);
     }
 
@@ -207,8 +207,15 @@ class SyncDownloadService
      */
     protected function resolvePath(SyncSource $source, SyncDownload $download, string $fileType): array
     {
-        $dir = $source->folder_path
-            ?: rtrim((string) config('sync.output_path'), '/')."/{$source->target_table}";
+        $base = rtrim((string) config('sync.output_path'), '/');
+
+        // Absolute folder_path is used as-is; a relative one nests under output_path;
+        // none falls back to a per-source slug directory.
+        $dir = match (true) {
+            $source->folder_path && str_starts_with($source->folder_path, '/') => $source->folder_path,
+            (bool) $source->folder_path => "{$base}/".trim($source->folder_path, '/'),
+            default => "{$base}/".$this->sourceSlug($source),
+        };
         $dir = rtrim($dir, '/');
 
         if (! is_dir($dir)) {
@@ -216,7 +223,7 @@ class SyncDownloadService
         }
 
         $pattern = $source->file_name ?: '{{timestamp}}_{{id}}';
-        $name = $this->resolveFileName($pattern, $source, $download).".{$fileType}";
+        $name = $this->resolveFileName($pattern, $download).".{$fileType}";
 
         return ["{$dir}/{$name}", $name];
     }
@@ -224,16 +231,23 @@ class SyncDownloadService
     /**
      * Expand placeholder tokens in a file-name template.
      */
-    protected function resolveFileName(string $pattern, SyncSource $source, SyncDownload $download): string
+    protected function resolveFileName(string $pattern, SyncDownload $download): string
     {
         $now = Carbon::now();
 
         return strtr($pattern, [
             '{{timestamp}}' => $now->format('Ymd_His'),
             '{{date}}' => $now->format('Ymd'),
-            '{{table}}' => $source->source_table,
             '{{id}}' => (string) $download->id,
         ]);
+    }
+
+    /**
+     * A filesystem-safe slug derived from the source name (e.g. dealer.statuses → dealer_statuses).
+     */
+    protected function sourceSlug(SyncSource $source): string
+    {
+        return (string) preg_replace('/[^A-Za-z0-9_-]+/', '_', $source->name);
     }
 
     /**

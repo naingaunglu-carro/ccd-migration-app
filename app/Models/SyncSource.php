@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Contracts\Sync\ImportResolver;
-use App\Services\DataSync\Resolvers\DefaultImportResolver;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,35 +12,29 @@ use InvalidArgumentException;
 
 /**
  * @property int $id
+ * @property string $group
  * @property string $name
  * @property string $display_name
- * @property string $group
  * @property string $connection
- * @property string $source_table
- * @property string $target_table
- * @property string|null $query
- * @property array<string, string> $columns
- * @property string $source_key
+ * @property string $query
+ * @property string|null $resolver_class
  * @property string|null $folder_path
  * @property string|null $file_name
- * @property string|null $resolver_class
+ * @property Carbon|null $last_downloaded_at
  * @property Carbon|null $last_synced_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
 #[Fillable([
+    'group',
     'name',
     'display_name',
-    'group',
     'connection',
-    'source_table',
-    'target_table',
     'query',
-    'columns',
-    'source_key',
+    'resolver_class',
     'folder_path',
     'file_name',
-    'resolver_class',
+    'last_downloaded_at',
     'last_synced_at',
 ])]
 class SyncSource extends Model
@@ -54,25 +47,24 @@ class SyncSource extends Model
     protected function casts(): array
     {
         return [
-            'columns' => 'array',
+            'last_downloaded_at' => 'datetime',
             'last_synced_at' => 'datetime',
         ];
     }
 
     /**
-     * The target column used as the upsert key (where the source key lands).
-     */
-    public function targetKey(): string
-    {
-        return $this->columns[$this->source_key] ?? 'source_id';
-    }
-
-    /**
-     * Resolve the import resolver for this source (custom or default).
+     * Resolve the import resolver for this source.
+     *
+     * The resolver owns the target table, upsert key, and column mapping, so a
+     * source must declare a resolver_class before it can be imported.
      */
     public function resolver(): ImportResolver
     {
-        $class = $this->resolver_class ?: DefaultImportResolver::class;
+        $class = $this->resolver_class;
+
+        if (empty($class)) {
+            throw new InvalidArgumentException("Source [{$this->name}] has no resolver_class; an import resolver is required.");
+        }
 
         if (! class_exists($class)) {
             throw new InvalidArgumentException("Import resolver [{$class}] does not exist.");

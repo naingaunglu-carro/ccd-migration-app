@@ -15,6 +15,8 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property int $sync_source_id
+ * @property string $connection
+ * @property string $query
  * @property string $file_disk
  * @property string|null $file_path
  * @property string|null $file_name
@@ -31,6 +33,8 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable([
     'sync_source_id',
+    'connection',
+    'query',
     'file_disk',
     'file_path',
     'file_name',

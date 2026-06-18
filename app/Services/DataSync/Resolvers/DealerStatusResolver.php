@@ -6,26 +6,32 @@ use App\Contracts\Sync\ImportResolver;
 use App\Models\SyncSource;
 
 /**
- * Example custom resolver for the dealer.statuses source.
+ * Resolver for the dealer.statuses source.
  *
- * Demonstrates per-row data manipulation before the upsert: it trims every
- * value and normalises `name` to lowercase. Swap in real business logic here.
+ * Owns the target table, the upsert key, and the mapping from the query's
+ * output columns to the raw_statuses columns (with light normalisation).
  */
 class DealerStatusResolver implements ImportResolver
 {
-    public function resolve(array $row, array $source, SyncSource $syncSource): ?array
+    public function table(): string
     {
-        foreach ($row as $key => $value) {
-            if (is_string($value)) {
-                $row[$key] = trim($value);
-            }
-        }
+        return 'dealer_statuses';
+    }
 
-        if (isset($row['name']) && is_string($row['name'])) {
-            $row['name'] = strtolower($row['name']);
-        }
+    public function uniqueBy(): string|array
+    {
+        return 'source_id';
+    }
 
-        // Return null here to drop a row (e.g. soft-deleted / invalid source records).
-        return $row;
+    public function map(array $row, SyncSource $source): ?array
+    {
+        // Return null to drop a row (e.g. soft-deleted / invalid source records).
+        return [
+            'source_id' => $row['id'] ?? null,
+            'name' => isset($row['name']) ? strtolower(trim($row['name'])) : null,
+            'display_name' => isset($row['display_name']) ? trim($row['display_name']) : null,
+            'source_created_at' => $row['created_at'] ?? null,
+            'source_updated_at' => $row['updated_at'] ?? null,
+        ];
     }
 }

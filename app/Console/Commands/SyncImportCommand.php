@@ -28,7 +28,7 @@ class SyncImportCommand extends Command
             return self::FAILURE;
         }
 
-        $this->info("Importing download #{$download->id} → {$download->source->target_table}...");
+        $this->info("Importing download #{$download->id} for {$download->source->display_name}...");
 
         $import = $service->import($download);
 

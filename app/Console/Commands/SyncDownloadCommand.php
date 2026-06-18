@@ -28,7 +28,7 @@ class SyncDownloadCommand extends Command
             return self::FAILURE;
         }
 
-        $this->info("Downloading {$source->display_name} ({$source->connection}.{$source->source_table})...");
+        $this->info("Downloading {$source->display_name} (connection: {$source->connection})...");
 
         $download = $service->download($source);
 

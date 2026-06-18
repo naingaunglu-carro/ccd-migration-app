@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $sync_download_id
  * @property int $sync_source_id
+ * @property string|null $resolver_class
  * @property int $rows_read
  * @property int $rows_inserted
  * @property int $rows_updated
@@ -28,6 +29,7 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'sync_download_id',
     'sync_source_id',
+    'resolver_class',
     'rows_read',
     'rows_inserted',
     'rows_updated',

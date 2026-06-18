@@ -34,9 +34,9 @@ interface SyncSource {
     display_name: string;
     group: string;
     connection: string;
-    source_table: string;
-    target_table: string;
-    columns: string[];
+    query: string;
+    resolver_class: string | null;
+    last_downloaded_at: string | null;
     last_synced_at: string | null;
     downloads: Download[];
 }
@@ -139,18 +139,21 @@ const runImport = (download: Download) => {
                     <div class="flex flex-col">
                         <span class="font-medium">{{ data.display_name }}</span>
                         <span class="text-xs text-muted-foreground">
-                            {{ data.connection }}.{{ data.source_table }} →
-                            {{ data.target_table }}
+                            connection: {{ data.connection }} ·
+                            {{ data.resolver_class ?? 'no resolver' }}
                         </span>
                     </div>
                 </template>
             </Column>
 
-            <Column header="Columns">
+            <Column header="Query">
                 <template #body="{ data }">
-                    <span class="text-xs text-muted-foreground">
-                        {{ data.columns.join(', ') }}
-                    </span>
+                    <code
+                        class="block max-w-md truncate text-xs text-muted-foreground"
+                        :title="data.query"
+                    >
+                        {{ data.query }}
+                    </code>
                 </template>
             </Column>
 

@@ -2,18 +2,20 @@
 
 namespace App\Services\DataSync;
 
+use App\Contracts\Sync\ImportResolver;
 use App\Enums\Sync\SyncStatus;
 use App\Models\SyncDownload;
 use App\Models\SyncImport;
 use App\Models\SyncSource;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
 class SyncImportService
 {
     /**
-     * Part 2 — PROCESS: parse a downloaded file and upsert it into the target.
+     * Part 2 — PROCESS: parse a downloaded file and upsert it via the resolver.
      */
     public function import(SyncDownload $download): SyncImport
     {
@@ -26,16 +28,18 @@ class SyncImportService
         }
 
         $source = $download->source;
+        $resolver = $source->resolver();
 
         $import = $download->imports()->create([
             'sync_source_id' => $source->id,
+            'resolver_class' => $source->resolver_class,
             'status' => SyncStatus::RUNNING,
             'started_at' => Carbon::now(),
         ]);
 
         try {
-            $parsed = $this->parse($download, $source);
-            $stats = $this->load($source, $parsed['rows']);
+            $parsed = $this->parse($download, $source, $resolver);
+            $stats = $this->load($resolver->table(), $resolver->uniqueBy(), $parsed['rows']);
 
             $source->forceFill(['last_synced_at' => Carbon::now()])->save();
 
@@ -61,11 +65,11 @@ class SyncImportService
     }
 
     /**
-     * Parse a download file into rows keyed by target column, honouring file_type.
+     * Parse a download file, mapping each row to a target row via the resolver.
      *
-     * @return array{rows: list<array<string, string|null>>, skipped: int}
+     * @return array{rows: list<array<string, mixed>>, skipped: int}
      */
-    public function parse(SyncDownload $download, SyncSource $source): array
+    public function parse(SyncDownload $download, SyncSource $source, ImportResolver $resolver): array
     {
         $isCsv = $download->file_type === 'csv';
         $handle = fopen($download->file_path, 'rb');
@@ -77,36 +81,26 @@ class SyncImportService
         $rows = [];
         $skipped = 0;
         $headers = null;
-        $key = $source->targetKey();
-        $resolver = $source->resolver();
+        $keys = (array) $resolver->uniqueBy();
 
         try {
             while (($values = $this->readRecord($handle, $isCsv)) !== null) {
                 if ($headers === null) {
-                    $headers = $values; // source column names
+                    $headers = $values; // query output column names
 
                     continue;
                 }
 
-                $row = [];
                 $sourceRow = [];
 
-                foreach ($headers as $i => $sourceColumn) {
-                    $value = $this->normalize($values[$i] ?? null, $isCsv);
-                    $sourceRow[$sourceColumn] = $value;
-
-                    $target = $source->columns[$sourceColumn] ?? null;
-
-                    if ($target !== null) {
-                        $row[$target] = $value;
-                    }
+                foreach ($headers as $i => $column) {
+                    $sourceRow[$column] = $this->normalize($values[$i] ?? null, $isCsv);
                 }
 
-                // Hand the row to the source's resolver for custom manipulation.
-                $row = $resolver->resolve($row, $sourceRow, $source);
+                $row = $resolver->map($sourceRow, $source);
 
-                // A null row (resolver-dropped) or one with no upsert key is skipped.
-                if ($row === null || ! isset($row[$key]) || $row[$key] === null || $row[$key] === '') {
+                // Resolver-dropped, or missing any part of the upsert key → skip.
+                if ($row === null || ! $this->hasKeys($row, $keys)) {
                     $skipped++;
 
                     continue;
@@ -122,42 +116,55 @@ class SyncImportService
     }
 
     /**
-     * Upsert parsed rows into the target table, stamping last_synced_at.
+     * Upsert mapped rows into the target table, stamping last_synced_at when present.
      *
-     * @param  list<array<string, string|null>>  $rows
+     * @param  string|list<string>  $uniqueBy
+     * @param  list<array<string, mixed>>  $rows
      * @return array{read: int, inserted: int, updated: int}
      */
-    public function load(SyncSource $source, array $rows): array
+    public function load(string $table, string|array $uniqueBy, array $rows): array
     {
         if ($rows === []) {
             return ['read' => 0, 'inserted' => 0, 'updated' => 0];
         }
 
-        $key = $source->targetKey();
+        $keys = array_values((array) $uniqueBy);
+        $stampSynced = Schema::hasColumn($table, 'last_synced_at');
         $now = Carbon::now();
 
-        $existing = DB::table($source->target_table)->pluck($key)->all();
-        $existing = array_flip(array_map('strval', $existing));
-
-        $inserted = 0;
-        $updated = 0;
+        $before = DB::table($table)->count();
 
         foreach (array_chunk($rows, 500) as $chunk) {
-            $payload = [];
-
-            foreach ($chunk as $row) {
-                $row['last_synced_at'] = $now;
-                $payload[] = $row;
-
-                isset($existing[(string) $row[$key]]) ? $updated++ : $inserted++;
+            if ($stampSynced) {
+                $chunk = array_map(fn ($row) => $row + ['last_synced_at' => $now], $chunk);
             }
 
-            $updateColumns = array_values(array_diff(array_keys($payload[0]), [$key]));
+            $updateColumns = array_values(array_diff(array_keys($chunk[0]), $keys));
 
-            DB::table($source->target_table)->upsert($payload, [$key], $updateColumns);
+            DB::table($table)->upsert($chunk, $keys, $updateColumns);
         }
 
-        return ['read' => count($rows), 'inserted' => $inserted, 'updated' => $updated];
+        $read = count($rows);
+        $inserted = max(0, DB::table($table)->count() - $before);
+
+        return ['read' => $read, 'inserted' => $inserted, 'updated' => max(0, $read - $inserted)];
+    }
+
+    /**
+     * Whether a row carries a non-empty value for every upsert key column.
+     *
+     * @param  array<string, mixed>  $row
+     * @param  list<string>  $keys
+     */
+    protected function hasKeys(array $row, array $keys): bool
+    {
+        foreach ($keys as $key) {
+            if (! isset($row[$key]) || $row[$key] === '') {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

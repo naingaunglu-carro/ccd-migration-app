@@ -7,12 +7,9 @@ use App\Models\SyncSource;
 interface ImportResolver
 {
     /**
-     * The target table this resolver upserts into.
-     */
-    public function table(): string;
-
-    /**
      * The unique column(s) used as the upsert key (ON CONFLICT / ON DUPLICATE KEY).
+     *
+     * The target table itself comes from the source's target_table.
      *
      * @return string|list<string>
      */

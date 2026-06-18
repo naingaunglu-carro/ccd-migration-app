@@ -214,7 +214,7 @@ class SyncDownloadService
         $dir = match (true) {
             $source->folder_path && str_starts_with($source->folder_path, '/') => $source->folder_path,
             (bool) $source->folder_path => "{$base}/".trim($source->folder_path, '/'),
-            default => "{$base}/".$this->sourceSlug($source),
+            default => "{$base}/{$source->target_table}",
         };
         $dir = rtrim($dir, '/');
 
@@ -240,14 +240,6 @@ class SyncDownloadService
             '{{date}}' => $now->format('Ymd'),
             '{{id}}' => (string) $download->id,
         ]);
-    }
-
-    /**
-     * A filesystem-safe slug derived from the source name (e.g. dealer.statuses → dealer_statuses).
-     */
-    protected function sourceSlug(SyncSource $source): string
-    {
-        return (string) preg_replace('/[^A-Za-z0-9_-]+/', '_', $source->name);
     }
 
     /**

@@ -32,6 +32,7 @@ class SyncImportService
 
         $import = $download->imports()->create([
             'sync_source_id' => $source->id,
+            'target_table' => $source->target_table,
             'resolver_class' => $source->resolver_class,
             'status' => SyncStatus::RUNNING,
             'started_at' => Carbon::now(),
@@ -39,7 +40,7 @@ class SyncImportService
 
         try {
             $parsed = $this->parse($download, $source, $resolver);
-            $stats = $this->load($resolver->table(), $resolver->uniqueBy(), $parsed['rows']);
+            $stats = $this->load($source->target_table, $resolver->uniqueBy(), $parsed['rows']);
 
             $source->forceFill(['last_synced_at' => Carbon::now()])->save();
 

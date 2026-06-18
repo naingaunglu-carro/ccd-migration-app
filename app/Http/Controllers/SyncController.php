@@ -28,6 +28,7 @@ class SyncController extends Controller
                 'group' => $source->group,
                 'connection' => $source->connection,
                 'query' => $source->query,
+                'target_table' => $source->target_table,
                 'resolver_class' => $source->resolver_class ? class_basename($source->resolver_class) : null,
                 'last_downloaded_at' => $source->last_downloaded_at?->toIso8601String(),
                 'last_synced_at' => $source->last_synced_at?->toIso8601String(),

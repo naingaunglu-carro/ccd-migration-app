@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('display_name');
             $table->string('connection');
             $table->text('query');
+            $table->string('target_table');
             $table->string('resolver_class')->nullable();
             $table->string('folder_path')->nullable();
             $table->string('file_name')->nullable();

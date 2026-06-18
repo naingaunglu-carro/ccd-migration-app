@@ -35,6 +35,7 @@ interface SyncSource {
     group: string;
     connection: string;
     query: string;
+    target_table: string;
     resolver_class: string | null;
     last_downloaded_at: string | null;
     last_synced_at: string | null;
@@ -139,8 +140,8 @@ const runImport = (download: Download) => {
                     <div class="flex flex-col">
                         <span class="font-medium">{{ data.display_name }}</span>
                         <span class="text-xs text-muted-foreground">
-                            connection: {{ data.connection }} ·
-                            {{ data.resolver_class ?? 'no resolver' }}
+                            {{ data.connection }} → {{ data.target_table }} ·
+                            {{ data.resolver_class ?? 'default resolver' }}
                         </span>
                     </div>
                 </template>

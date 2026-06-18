@@ -18,6 +18,7 @@ use InvalidArgumentException;
  * @property string $display_name
  * @property string $connection
  * @property string $query
+ * @property string $target_table
  * @property string|null $resolver_class
  * @property string|null $folder_path
  * @property string|null $file_name
@@ -32,6 +33,7 @@ use InvalidArgumentException;
     'display_name',
     'connection',
     'query',
+    'target_table',
     'resolver_class',
     'folder_path',
     'file_name',
@@ -64,7 +66,7 @@ class SyncSource extends Model
         $class = $this->resolver_class;
 
         if (empty($class)) {
-            return new DefaultResolver($this);
+            return new DefaultResolver;
         }
 
         if (! class_exists($class)) {

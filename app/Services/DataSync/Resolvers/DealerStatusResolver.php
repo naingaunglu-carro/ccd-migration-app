@@ -8,16 +8,12 @@ use App\Models\SyncSource;
 /**
  * Resolver for the dealer.statuses source.
  *
- * Owns the target table, the upsert key, and the mapping from the query's
- * output columns to the raw_statuses columns (with light normalisation).
+ * Owns the upsert key and the mapping from the query's output columns to the
+ * target columns (with light normalisation). The target table comes from the
+ * source's target_table.
  */
 class DealerStatusResolver implements ImportResolver
 {
-    public function table(): string
-    {
-        return 'dealer_statuses';
-    }
-
     public function uniqueBy(): string|array
     {
         return 'source_id';

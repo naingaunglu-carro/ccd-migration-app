@@ -11,11 +11,11 @@ class SyncSourceSeeder extends Seeder
     use ReadsJson;
 
     /**
-     * Seed the configured data-sync sources from database/seeders/data/sync_sources.json.
+     * Seed the configured data-sync sources from database/seeders/data/sync_sources/*.json.
      */
     public function run(): void
     {
-        $sources = $this->readJson(database_path('seeders/data/sync_sources.json'));
+        $sources = $this->readJsonDirectory(database_path('seeders/data/sync_sources'));
 
         foreach ($sources as $source) {
             SyncSource::updateOrCreate(

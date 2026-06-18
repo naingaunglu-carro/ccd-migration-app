@@ -1,2 +1,13 @@
 [
+    {
+        "group": "Transactions",
+        "name": "dealer.transactions",
+        "display_name": "Dealer Transactions",
+        "connection": "dealer",
+        "query": "select id, type, title, status_id, created_at, updated_at from transactions",
+        "target_table": "dealer_transactions",
+        "resolver_class": "",
+        "folder_path": "transactions",
+        "file_name": "dealer_transactions_{{timestamp}}"
+    }
 ]

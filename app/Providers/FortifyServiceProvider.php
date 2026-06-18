@@ -74,12 +74,6 @@ class FortifyServiceProvider extends ServiceProvider
         ]));
         /* @end-chisel-email-verification */
 
-        /* @chisel-registration */
-        Fortify::registerView(fn () => Inertia::render('auth/Register', [
-            'passwordRules' => Password::defaults()->toPasswordRulesString(),
-        ]));
-        /* @end-chisel-registration */
-
         /* @chisel-2fa */
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/TwoFactorChallenge'));
         /* @end-chisel-2fa */

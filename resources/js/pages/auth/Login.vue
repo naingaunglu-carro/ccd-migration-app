@@ -1,118 +1,122 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
-import InputError from '@/components/InputError.vue';
-import PasswordInput from '@/components/PasswordInput.vue';
-import TextLink from '@/components/TextLink.vue';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
-/* @chisel-registration */
-import { register } from '@/routes';
-/* @end-chisel-registration */
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import Button from 'primevue/button';
+import Card from 'primevue/card';
+import Checkbox from 'primevue/checkbox';
+import InputText from 'primevue/inputtext';
+import Message from 'primevue/message';
+import Password from 'primevue/password';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
-/* @chisel-passkeys */
-import PasskeyVerify from '@/components/PasskeyVerify.vue';
-/* @end-chisel-passkeys */
-
-defineOptions({
-    layout: {
-        title: 'Log in to your account',
-        description: 'Enter your email and password below to log in',
-    },
-});
 
 defineProps<{
     status?: string;
     canResetPassword: boolean;
 }>();
+
+const form = useForm({
+    email: '',
+    password: '',
+    remember: false,
+});
+
+const submit = () => {
+    form.post(store.url(), {
+        onFinish: () => form.reset('password'),
+    });
+};
 </script>
 
 <template>
     <Head title="Log in" />
 
     <div
-        v-if="status"
-        class="mb-4 text-center text-sm font-medium text-green-600"
+        class="flex min-h-screen items-center justify-center bg-surface-50 p-4 dark:bg-surface-950"
     >
-        {{ status }}
+        <Card class="w-full max-w-md shadow-lg">
+            <template #title>
+                <span class="text-xl font-semibold">Sign in</span>
+            </template>
+            <template #subtitle>
+                Enter your email and password to continue
+            </template>
+
+            <template #content>
+                <Message
+                    v-if="status"
+                    severity="success"
+                    :closable="false"
+                    class="mb-4"
+                >
+                    {{ status }}
+                </Message>
+
+                <form class="mt-2 flex flex-col gap-5" @submit.prevent="submit">
+                    <div class="flex flex-col gap-2">
+                        <label for="email" class="text-sm font-medium">
+                            Email address
+                        </label>
+                        <InputText
+                            id="email"
+                            v-model="form.email"
+                            type="email"
+                            autocomplete="email"
+                            placeholder="email@example.com"
+                            fluid
+                            autofocus
+                            :invalid="!!form.errors.email"
+                        />
+                        <small v-if="form.errors.email" class="text-red-500">
+                            {{ form.errors.email }}
+                        </small>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                            <label for="password" class="text-sm font-medium">
+                                Password
+                            </label>
+                            <Link
+                                v-if="canResetPassword"
+                                :href="request().url"
+                                class="text-sm text-primary hover:underline"
+                            >
+                                Forgot password?
+                            </Link>
+                        </div>
+                        <Password
+                            v-model="form.password"
+                            input-id="password"
+                            :feedback="false"
+                            toggle-mask
+                            autocomplete="current-password"
+                            placeholder="Password"
+                            fluid
+                            :invalid="!!form.errors.password"
+                        />
+                        <small v-if="form.errors.password" class="text-red-500">
+                            {{ form.errors.password }}
+                        </small>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <Checkbox
+                            v-model="form.remember"
+                            input-id="remember"
+                            binary
+                        />
+                        <label for="remember" class="text-sm">Remember me</label>
+                    </div>
+
+                    <Button
+                        type="submit"
+                        label="Sign in"
+                        icon="pi pi-sign-in"
+                        :loading="form.processing"
+                        fluid
+                    />
+                </form>
+            </template>
+        </Card>
     </div>
-
-    <!-- @chisel-passkeys -->
-    <PasskeyVerify />
-    <!-- @end-chisel-passkeys -->
-
-    <Form
-        v-bind="store.form()"
-        :reset-on-success="['password']"
-        v-slot="{ errors, processing }"
-        class="flex flex-col gap-6"
-    >
-        <div class="grid gap-6">
-            <div class="grid gap-2">
-                <Label for="email">Email address</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    name="email"
-                    required
-                    autofocus
-                    :tabindex="1"
-                    autocomplete="email"
-                    placeholder="email@example.com"
-                />
-                <InputError :message="errors.email" />
-            </div>
-
-            <div class="grid gap-2">
-                <div class="flex items-center justify-between">
-                    <Label for="password">Password</Label>
-                    <TextLink
-                        v-if="canResetPassword"
-                        :href="request()"
-                        class="text-sm"
-                        :tabindex="5"
-                    >
-                        Forgot your password?
-                    </TextLink>
-                </div>
-                <PasswordInput
-                    id="password"
-                    name="password"
-                    required
-                    :tabindex="2"
-                    autocomplete="current-password"
-                    placeholder="Password"
-                />
-                <InputError :message="errors.password" />
-            </div>
-
-            <div class="flex items-center justify-between">
-                <Label for="remember" class="flex items-center space-x-3">
-                    <Checkbox id="remember" name="remember" :tabindex="3" />
-                    <span>Remember me</span>
-                </Label>
-            </div>
-
-            <Button
-                type="submit"
-                class="mt-4 w-full"
-                :tabindex="4"
-                :disabled="processing"
-                data-test="login-button"
-            >
-                <Spinner v-if="processing" />
-                Log in
-            </Button>
-        </div>
-
-        <!-- @chisel-registration -->
-        <div class="text-center text-sm text-muted-foreground">
-            Don't have an account?
-            <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
-        </div>
-        <!-- @end-chisel-registration -->
-    </Form>
 </template>

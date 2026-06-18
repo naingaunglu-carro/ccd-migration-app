@@ -1,66 +1,88 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
-import InputError from '@/components/InputError.vue';
-import TextLink from '@/components/TextLink.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import Button from 'primevue/button';
+import Card from 'primevue/card';
+import InputText from 'primevue/inputtext';
+import Message from 'primevue/message';
 import { login } from '@/routes';
 import { email } from '@/routes/password';
-
-defineOptions({
-    layout: {
-        title: 'Forgot password',
-        description: 'Enter your email to receive a password reset link',
-    },
-});
 
 defineProps<{
     status?: string;
 }>();
+
+const form = useForm({
+    email: '',
+});
+
+const submit = () => {
+    form.post(email.url());
+};
 </script>
 
 <template>
     <Head title="Forgot password" />
 
     <div
-        v-if="status"
-        class="mb-4 text-center text-sm font-medium text-green-600"
+        class="flex min-h-screen items-center justify-center bg-surface-50 p-4 dark:bg-surface-950"
     >
-        {{ status }}
-    </div>
+        <Card class="w-full max-w-md shadow-lg">
+            <template #title>
+                <span class="text-xl font-semibold">Forgot password</span>
+            </template>
+            <template #subtitle>
+                Enter your email and we'll send a reset link
+            </template>
 
-    <div class="space-y-6">
-        <Form v-bind="email.form()" v-slot="{ errors, processing }">
-            <div class="grid gap-2">
-                <Label for="email">Email address</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    name="email"
-                    autocomplete="off"
-                    autofocus
-                    placeholder="email@example.com"
-                />
-                <InputError :message="errors.email" />
-            </div>
-
-            <div class="my-6 flex items-center justify-start">
-                <Button
-                    class="w-full"
-                    :disabled="processing"
-                    data-test="email-password-reset-link-button"
+            <template #content>
+                <Message
+                    v-if="status"
+                    severity="success"
+                    :closable="false"
+                    class="mb-4"
                 >
-                    <Spinner v-if="processing" />
-                    Email password reset link
-                </Button>
-            </div>
-        </Form>
+                    {{ status }}
+                </Message>
 
-        <div class="space-x-1 text-center text-sm text-muted-foreground">
-            <span>Or, return to</span>
-            <TextLink :href="login()">log in</TextLink>
-        </div>
+                <form class="mt-2 flex flex-col gap-5" @submit.prevent="submit">
+                    <div class="flex flex-col gap-2">
+                        <label for="email" class="text-sm font-medium">
+                            Email address
+                        </label>
+                        <InputText
+                            id="email"
+                            v-model="form.email"
+                            type="email"
+                            autocomplete="email"
+                            placeholder="email@example.com"
+                            fluid
+                            autofocus
+                            :invalid="!!form.errors.email"
+                        />
+                        <small v-if="form.errors.email" class="text-red-500">
+                            {{ form.errors.email }}
+                        </small>
+                    </div>
+
+                    <Button
+                        type="submit"
+                        label="Email password reset link"
+                        icon="pi pi-envelope"
+                        :loading="form.processing"
+                        fluid
+                    />
+
+                    <p class="text-center text-sm text-surface-500">
+                        Or, return to
+                        <Link
+                            :href="login().url"
+                            class="text-primary hover:underline"
+                        >
+                            log in
+                        </Link>
+                    </p>
+                </form>
+            </template>
+        </Card>
     </div>
 </template>

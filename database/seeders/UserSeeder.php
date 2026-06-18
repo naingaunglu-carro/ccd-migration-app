@@ -13,7 +13,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $email = 'admin@gmail.com';
+        $email = 'admin@carro.co';
 
         if (User::where('email', $email)->exists()) {
             $this->command?->info("Default user [{$email}] already exists; skipping.");

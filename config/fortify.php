@@ -167,9 +167,7 @@ return [
     */
 
     'features' => [
-        /* @chisel-registration */
-        Features::registration(),
-        /* @end-chisel-registration */
+        // Registration disabled — internal tool, accounts are provisioned manually.
         Features::resetPasswords(),
         /* @chisel-email-verification */
         Features::emailVerification(),

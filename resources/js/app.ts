@@ -1,10 +1,11 @@
 import { createInertiaApp } from '@inertiajs/vue3';
-import Aura from '@primeuix/themes/aura';
 import PrimeVue from 'primevue/config';
 import 'primeicons/primeicons.css';
+import { AppTheme } from '@/lib/theme';
 import { initializeTheme } from '@/composables/useAppearance';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
+import PrimeAppLayout from '@/layouts/PrimeAppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 
@@ -15,7 +16,7 @@ createInertiaApp({
     withApp: (app) => {
         app.use(PrimeVue, {
             theme: {
-                preset: Aura,
+                preset: AppTheme,
                 options: {
                     // Match the app's class-based dark mode (.dark on <html>)...
                     darkModeSelector: '.dark',
@@ -32,12 +33,15 @@ createInertiaApp({
         switch (true) {
             case name === 'Welcome':
                 return null;
+            case name === 'auth/Login':
+            case name === 'auth/ForgotPassword':
+                return null; // self-contained PrimeVue auth pages
             case name.startsWith('auth/'):
                 return AuthLayout;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
             default:
-                return AppLayout;
+                return PrimeAppLayout;
         }
     },
     progress: {

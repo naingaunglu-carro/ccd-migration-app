@@ -55,22 +55,32 @@ class SyncSource extends Model
     }
 
     /**
-     * Sync runs recorded for this source.
+     * Downloads (Part 1 — extract) recorded for this source.
      *
-     * @return HasMany<SyncLog, $this>
+     * @return HasMany<SyncDownload, $this>
      */
-    public function logs(): HasMany
+    public function downloads(): HasMany
     {
-        return $this->hasMany(SyncLog::class);
+        return $this->hasMany(SyncDownload::class);
     }
 
     /**
-     * Most recent sync run for this source.
+     * Most recent download for this source.
      *
-     * @return HasOne<SyncLog, $this>
+     * @return HasOne<SyncDownload, $this>
      */
-    public function latestLog(): HasOne
+    public function latestDownload(): HasOne
     {
-        return $this->hasOne(SyncLog::class)->latestOfMany();
+        return $this->hasOne(SyncDownload::class)->latestOfMany();
+    }
+
+    /**
+     * Imports (Part 2 — process) recorded for this source.
+     *
+     * @return HasMany<SyncImport, $this>
+     */
+    public function imports(): HasMany
+    {
+        return $this->hasMany(SyncImport::class);
     }
 }

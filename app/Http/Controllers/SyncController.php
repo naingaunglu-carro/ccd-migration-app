@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SyncDownload;
 use App\Models\SyncSource;
-use App\Services\DataSync\DataSyncService;
+use App\Services\DataSync\SyncDownloadService;
+use App\Services\DataSync\SyncImportService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -11,31 +13,40 @@ use Inertia\Response;
 class SyncController extends Controller
 {
     /**
-     * List the configured sync sources with their latest run.
+     * List sync sources, each with its recent downloads and import results.
      */
     public function index(): Response
     {
         $sources = SyncSource::query()
-            ->with('latestLog')
+            ->with(['downloads' => fn ($q) => $q->latest()->limit(10)->with('latestImport')])
             ->orderBy('display_name')
             ->get()
             ->map(fn (SyncSource $source) => [
                 'id' => $source->id,
-                'name' => $source->name,
                 'display_name' => $source->display_name,
                 'connection' => $source->connection,
                 'source_table' => $source->source_table,
                 'target_table' => $source->target_table,
                 'columns' => array_keys($source->columns),
                 'last_synced_at' => $source->last_synced_at?->toIso8601String(),
-                'latest_log' => $source->latestLog ? [
-                    'status' => $source->latestLog->status,
-                    'rows_read' => $source->latestLog->rows_read,
-                    'rows_inserted' => $source->latestLog->rows_inserted,
-                    'rows_updated' => $source->latestLog->rows_updated,
-                    'error_message' => $source->latestLog->error_message,
-                    'finished_at' => $source->latestLog->finished_at?->toIso8601String(),
-                ] : null,
+                'downloads' => $source->downloads->map(fn (SyncDownload $d) => [
+                    'id' => $d->id,
+                    'status' => $d->status->value,
+                    'file_type' => $d->file_type,
+                    'file_name' => $d->file_name,
+                    'row_count' => $d->row_count,
+                    'file_size' => $d->file_size,
+                    'error_message' => $d->error_message,
+                    'created_at' => $d->created_at?->toIso8601String(),
+                    'latest_import' => $d->latestImport ? [
+                        'status' => $d->latestImport->status->value,
+                        'rows_inserted' => $d->latestImport->rows_inserted,
+                        'rows_updated' => $d->latestImport->rows_updated,
+                        'rows_skipped' => $d->latestImport->rows_skipped,
+                        'error_message' => $d->latestImport->error_message,
+                        'finished_at' => $d->latestImport->finished_at?->toIso8601String(),
+                    ] : null,
+                ]),
             ]);
 
         return Inertia::render('Sync/Index', [
@@ -44,25 +55,50 @@ class SyncController extends Controller
     }
 
     /**
-     * Trigger a sync for the given source.
+     * Part 1 — trigger a download (export) for a source.
      */
-    public function sync(SyncSource $source, DataSyncService $service): RedirectResponse
+    public function download(SyncSource $source, SyncDownloadService $service): RedirectResponse
     {
         try {
-            $log = $service->sync($source);
+            $download = $service->download($source);
 
             Inertia::flash('toast', [
                 'type' => 'success',
-                'message' => __(':name synced — :inserted new, :updated updated.', [
+                'message' => __(':name downloaded — :rows rows.', [
                     'name' => $source->display_name,
-                    'inserted' => $log->rows_inserted,
-                    'updated' => $log->rows_updated,
+                    'rows' => $download->row_count,
                 ]),
             ]);
         } catch (\Throwable $e) {
             Inertia::flash('toast', [
                 'type' => 'error',
-                'message' => __('Sync failed: :error', ['error' => $e->getMessage()]),
+                'message' => __('Download failed: :error', ['error' => $e->getMessage()]),
+            ]);
+        }
+
+        return to_route('sync.index');
+    }
+
+    /**
+     * Part 2 — trigger an import (process) for a downloaded file.
+     */
+    public function import(SyncDownload $download, SyncImportService $service): RedirectResponse
+    {
+        try {
+            $import = $service->import($download);
+
+            Inertia::flash('toast', [
+                'type' => 'success',
+                'message' => __('Imported — :inserted new, :updated updated, :skipped skipped.', [
+                    'inserted' => $import->rows_inserted,
+                    'updated' => $import->rows_updated,
+                    'skipped' => $import->rows_skipped,
+                ]),
+            ]);
+        } catch (\Throwable $e) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => __('Import failed: :error', ['error' => $e->getMessage()]),
             ]);
         }
 

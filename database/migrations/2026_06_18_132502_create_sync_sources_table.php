@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('source_key')->default('id');
             $table->timestamp('last_synced_at')->nullable();
             $table->timestamps();
+            $table->unique('name');
         });
     }
 

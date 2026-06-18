@@ -4,23 +4,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | MySQL client binary
+    | Client binaries
     |--------------------------------------------------------------------------
     |
-    | Path to the `mysql` CLI used to export source data into TSV files.
-    | Override if it is not on the system PATH (e.g. /usr/local/bin/mysql).
+    | CLI used to export source data, keyed by driver. A source connection
+    | picks one of these via its `driver` key.
     |
     */
 
-    'mysql_binary' => env('SYNC_MYSQL_BINARY', 'mysql'),
+    'binaries' => [
+        'mysql' => env('SYNC_MYSQL_BINARY', 'mysql'),
+        'pgsql' => env('SYNC_PSQL_BINARY', 'psql'),
+    ],
 
     /*
     |--------------------------------------------------------------------------
     | Raw data output directory
     |--------------------------------------------------------------------------
     |
-    | Where exported .tsv files are written. Each sync writes to
-    | "{output_path}/{target_table}.tsv".
+    | Where exported files are written. Each download writes to
+    | "{output_path}/{target_table}/{timestamp}.{file_type}".
     |
     */
 
@@ -28,30 +31,41 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Default mysql CLI flags
+    | Per-driver export defaults
     |--------------------------------------------------------------------------
     |
-    | Flags applied to every export. --batch --raw --quick stream rows as a
-    | tab-separated, unbuffered result set (NULLs come through as \N).
+    | Each driver exports in its native, streamable format:
+    |   - mysql: `mysql --batch --raw` → tab-separated, header row, \N for NULL
+    |   - pgsql: `psql \copy ... CSV HEADER` → comma-separated, header row
     |
     */
 
-    'flags' => ['--batch', '--raw', '--quick'],
+    'drivers' => [
+        'mysql' => [
+            'file_type' => 'tsv',
+            'flags' => ['--batch', '--raw', '--quick'],
+        ],
+        'pgsql' => [
+            'file_type' => 'csv',
+            'flags' => [],
+        ],
+    ],
 
     /*
     |--------------------------------------------------------------------------
     | Source connections
     |--------------------------------------------------------------------------
     |
-    | Each key here is referenced by the `connection` column on a sync_sources
-    | row. Credentials are read from the environment so they never live in the
-    | database. SSL mode and connect timeout map to the mysql CLI options.
+    | Each key is referenced by the `connection` column on a sync_sources row.
+    | `driver` selects mysql or pgsql. Credentials come from the environment so
+    | they never live in the database.
     |
     */
 
     'connections' => [
 
         'dealer' => [
+            'driver' => 'mysql',
             'host' => env('DEALER_DB_HOST'),
             'port' => env('DEALER_DB_PORT', 3306),
             'database' => env('DEALER_DB_DATABASE', 'dealer'),
@@ -59,6 +73,18 @@ return [
             'password' => env('DEALER_DB_PASSWORD'),
             'ssl_mode' => env('DEALER_DB_SSL_MODE', 'REQUIRED'),
             'connect_timeout' => env('DEALER_DB_CONNECT_TIMEOUT', 30),
+        ],
+
+        // Example Postgres source — duplicate and adjust per real source.
+        'pg_example' => [
+            'driver' => 'pgsql',
+            'host' => env('PG_EXAMPLE_DB_HOST'),
+            'port' => env('PG_EXAMPLE_DB_PORT', 5432),
+            'database' => env('PG_EXAMPLE_DB_DATABASE'),
+            'username' => env('PG_EXAMPLE_DB_USERNAME'),
+            'password' => env('PG_EXAMPLE_DB_PASSWORD'),
+            'ssl_mode' => env('PG_EXAMPLE_DB_SSL_MODE', 'require'),
+            'connect_timeout' => env('PG_EXAMPLE_DB_CONNECT_TIMEOUT', 30),
         ],
 
     ],

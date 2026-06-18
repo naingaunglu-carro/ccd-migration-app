@@ -11,21 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sync_logs', function (Blueprint $table) {
+        // Part 2 — PROCESS: one row per import run; consumes a downloaded file.
+        Schema::create('sync_imports', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('sync_source_id')->constrained('sync_sources');
-            $table->string('source_table');
-            $table->string('target_table');
-            $table->string('file_path')->nullable();
+            $table->foreignId('sync_download_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('sync_source_id')->constrained()->cascadeOnDelete();
+            $table->string('status')->default('pending'); // pending|running|completed|failed
             $table->unsignedInteger('rows_read')->default(0);
             $table->unsignedInteger('rows_inserted')->default(0);
             $table->unsignedInteger('rows_updated')->default(0);
-            $table->unsignedInteger('rows_failed')->default(0);
+            $table->unsignedInteger('rows_skipped')->default(0); // bad/unmapped rows
             $table->text('error_message')->nullable();
             $table->timestamp('started_at')->nullable();
             $table->timestamp('finished_at')->nullable();
-            $table->string('status')->default('pending');
             $table->timestamps();
+
+            $table->index(['sync_source_id', 'status']);
+            $table->index('sync_download_id');
         });
     }
 
@@ -34,6 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sync_logs');
+        Schema::dropIfExists('sync_imports');
     }
 };

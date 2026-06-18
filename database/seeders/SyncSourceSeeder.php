@@ -16,10 +16,14 @@ class SyncSourceSeeder extends Seeder
             ['name' => 'dealer.statuses'],
             [
                 'display_name' => 'Dealer Statuses',
+                'group' => 'Dealer',
                 'connection' => 'dealer',
                 'source_table' => 'statuses',
                 'target_table' => 'raw_statuses',
                 'source_key' => 'id',
+                // folder_path null → default config('sync.output_path')/raw_statuses
+                'folder_path' => null,
+                'file_name' => 'dealer_status_{{timestamp}}',
                 // source column => target (raw_statuses) column
                 'columns' => [
                     'id' => 'source_id',

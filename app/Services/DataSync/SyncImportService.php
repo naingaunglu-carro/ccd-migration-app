@@ -83,6 +83,7 @@ class SyncImportService
             while (($values = $this->readRecord($handle, $isCsv)) !== null) {
                 if ($headers === null) {
                     $headers = $values; // source column names
+
                     continue;
                 }
 

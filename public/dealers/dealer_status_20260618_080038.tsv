@@ -1,0 +1,834 @@
+id	name	display_name	created_at	updated_at
+1	inventories-new-incoming	Incoming	2020-02-10 00:00:00	2022-07-18 11:31:26
+6	inventories-new-sold	Sold	2020-02-10 00:00:00	2022-07-18 11:31:27
+8	inventories-used-incoming	Incoming	2020-02-10 00:00:00	2022-07-18 11:31:27
+9	inventories-used-workshop	At Workshop	2020-02-10 00:00:00	2022-07-18 11:31:27
+10	inventories-used-available	Available	2020-02-10 00:00:00	2022-07-18 11:31:27
+13	auctions-draft	Draft	2020-02-10 00:00:00	2022-07-18 11:31:27
+14	auctions-ready	Ready to Publish	2020-02-10 00:00:00	2022-07-18 11:31:27
+15	auctions-active	Active	2020-02-10 00:00:00	2022-07-18 11:31:27
+16	auctions-ended	Ended	2020-02-10 00:00:00	2022-07-18 11:31:27
+17	auctions-cancelled	Cancelled	2020-02-10 00:00:00	2022-07-18 11:31:27
+18	auctions-awarded	Awarded	2020-02-10 00:00:00	2022-07-18 11:31:27
+19	auctions-confirmed	Confirmed	2020-02-10 00:00:00	2022-07-18 11:31:27
+20	bids-withdrawn	Withdrawn	2020-02-10 00:00:00	2022-07-18 11:31:27
+24	auctions-restarted	Restarted	2020-02-10 00:00:00	2022-07-18 11:31:27
+25	auctions-rejected	Rejected	2020-02-10 00:00:00	2022-07-18 11:31:27
+26	auctions-reserved	Reserved	2020-02-10 00:00:00	2022-07-18 11:31:27
+27	auctions-sold	Sold	2020-02-10 00:00:00	2022-07-18 11:31:27
+28	purchase-requests-draft	Draft	2020-02-10 00:00:00	2022-07-18 11:31:27
+29	purchase-requests-pending	Pending	2020-02-10 00:00:00	2022-07-18 11:31:27
+30	purchase-requests-approved	Approved	2020-02-10 00:00:00	2022-07-18 11:31:27
+31	purchase-requests-rejected	Rejected	2020-02-10 00:00:00	2022-07-18 11:31:27
+33	loan-cases-new	New	2020-02-10 00:00:00	2022-07-18 11:31:28
+34	loan-cases-submitted	Submitted	2020-02-10 00:00:00	2022-07-18 11:31:28
+35	loan-cases-processing	Processing	2020-02-10 00:00:00	2022-07-18 11:31:28
+36	loan-cases-approved	Approved	2020-02-10 00:00:00	2022-07-18 11:31:28
+42	loan-cases-rejected	Rejected	2020-02-10 00:00:00	2022-07-18 11:31:28
+43	loan-cases-withdrawn	Withdrawn	2020-02-10 00:00:00	2022-07-18 11:31:28
+46	listings-draft	Draft	2020-02-10 00:00:00	2022-07-18 11:31:27
+47	listings-for-sale	For Sale	2020-02-10 00:00:00	2022-07-18 11:31:27
+48	listings-not-for-sale	Not for Sale	2020-02-10 00:00:00	2022-07-18 11:31:28
+49	transactions-confirmed	Confirmed	2020-02-10 00:00:00	2020-04-09 15:06:12
+50	transactions-pending-deposit	Pending Deposit	2020-02-10 00:00:00	2020-04-09 15:06:12
+51	transactions-completed	Completed	2020-02-10 00:00:00	2020-04-09 15:06:12
+52	transactions-confirm-cancelled	Confirm Cancelled	2020-02-10 00:00:00	2020-06-01 12:50:40
+54	inventories-used-sold	Sold	2020-02-10 00:00:00	2022-07-18 11:31:28
+56	inventories-used-pending-deposit	Pending Deposit	2020-02-10 00:00:00	2022-07-18 11:31:28
+57	inspection-draft	Draft	2020-02-10 00:00:00	2022-07-18 11:31:28
+58	inspection-complete	Completed	2020-02-10 00:00:00	2022-07-18 11:31:28
+59	inventories-new-available	Available	2020-02-10 00:00:00	2022-07-18 11:31:28
+61	inventories-new-pending-deposit	Pending Deposit	2020-02-10 00:00:00	2022-07-18 11:31:28
+64	bids-rejected	Rejected	2020-02-10 00:00:00	2022-07-18 11:31:28
+65	inventories-new-workshop	At Workshop	2020-02-10 00:00:00	2022-07-18 11:31:28
+66	inventories-new-deposit-collected	Deposit Collected	2020-02-10 00:00:00	2022-07-18 11:31:28
+67	inventories-used-deposit-collected	Deposit Collected	2020-02-10 00:00:00	2022-07-18 11:31:28
+68	inventories-new-confirmed	Confirmed	2020-02-10 00:00:00	2022-07-18 11:31:28
+69	meetups-scheduled	Scheduled	2020-02-10 00:00:00	2022-07-18 11:31:28
+70	meetups-successful	Successful	2020-02-10 00:00:00	2022-07-18 11:31:28
+71	meetups-unsuccessful	Unsuccessful	2020-02-10 00:00:00	2022-07-18 11:31:28
+72	meetups-rescheduled	Rescheduled	2020-02-10 00:00:00	2022-07-18 11:31:28
+89	loan-applications-new	New	2020-02-10 00:00:00	2022-07-18 11:31:28
+90	loan-applications-approved	Approved	2020-02-10 00:00:00	2022-07-18 11:31:28
+91	loan-applications-rejected	Rejected	2020-02-10 00:00:00	2022-07-18 11:31:28
+92	loan-applications-pending	Pending	2020-02-10 00:00:00	2022-07-18 11:31:28
+93	loan-persons-new	New	2020-02-10 00:00:00	2022-07-18 11:31:28
+94	loan-persons-completed	Completed	2020-02-10 00:00:00	2022-07-18 11:31:28
+95	ticket-new	New	2020-02-10 00:00:00	2022-07-18 11:31:29
+96	ticket-assigned	Assigned	2020-02-10 00:00:00	2022-07-18 11:31:29
+97	ticket-failed-to-contact	Failed to Contact	2020-02-10 00:00:00	2022-07-18 11:31:29
+98	ticket-contacted	Customer Contacted	2020-02-10 00:00:00	2024-04-05 16:43:55
+99	ticket-pending	Pending	2020-02-10 00:00:00	2022-07-18 11:31:29
+100	ticket-viewing-scheduled	Viewing Scheduled	2020-02-10 00:00:00	2022-07-18 11:31:29
+101	ticket-collection-scheduled	Collection Scheduled	2020-02-10 00:00:00	2022-11-07 14:17:14
+102	ticket-meetup-scheduled	Meetup Scheduled	2020-02-10 00:00:00	2022-11-07 14:17:14
+103	ticket-listed	Listed	2020-02-10 00:00:00	2022-11-07 14:17:14
+104	ticket-relisted	Relisted	2020-02-10 00:00:00	2022-11-07 14:17:14
+105	ticket-in-auction	In Auction	2020-02-10 00:00:00	2022-07-18 11:31:29
+106	ticket-re-auctioned	Re-auctioned	2020-02-10 00:00:00	2022-11-07 14:17:15
+107	ticket-closed	Closed	2020-02-10 00:00:00	2022-07-18 11:31:29
+108	ticket-delisted 	Delisted	2020-02-10 00:00:00	2022-11-07 14:17:15
+111	ticket-to-be-reassigned	To Be Reassigned	2020-02-10 00:00:00	2022-11-07 14:17:15
+112	fleet-rented	Rented	2020-02-10 00:00:00	2022-07-18 11:31:30
+113	fleet-workshop	Workshop	2020-02-10 00:00:00	2020-06-01 12:50:39
+114	fleet-incoming	Incoming	2020-02-10 00:00:00	2020-06-01 12:50:39
+115	fleet-inventory	Inventory	2020-02-10 00:00:00	2020-06-01 12:50:39
+116	fleet-deregistered	Deregistered	2020-02-10 00:00:00	2020-06-01 12:50:39
+117	ticket-deposit-failed	Deposit Payment Failed	2020-02-10 00:00:00	2022-11-07 14:17:15
+118	lead-potential	Potential	2020-02-10 00:00:00	2022-07-18 11:31:30
+119	lead-pending	Pending	2020-02-10 00:00:00	2022-07-18 11:31:30
+120	lead-deposit-received	Deposit Received	2020-02-10 00:00:00	2022-07-18 11:31:30
+121	lead-collection-scheduled	Collection Scheduled	2020-02-10 00:00:00	2022-07-18 11:31:30
+122	lead-collection-rescheduled	Collection Rescheuled	2020-02-10 00:00:00	2022-07-18 11:31:30
+123	lead-closed-won	Closed - Won	2020-02-10 00:00:00	2022-07-18 11:31:30
+124	lead-closed-lost	Closed - Lost	2020-02-10 00:00:00	2022-07-18 11:31:30
+125	lead-closed-rejected	Carro Rejected	2020-02-10 00:00:00	2022-07-18 11:31:30
+126	listings-deposited	Deposit Collected (SG Subscription - Waitlisters)	2020-02-10 00:00:00	2022-07-18 11:31:28
+127	ticket-converted-to-lead	Converted to Lead	2020-02-10 00:00:00	2022-07-18 11:31:29
+128	meetups-no-meet-up	No meet up	2020-02-10 00:00:00	2022-07-18 11:31:30
+129	invoices-draft	Draft	2020-02-10 00:00:00	2022-07-18 11:31:30
+130	invoices-not-sent	Not Sent	2020-02-10 00:00:00	2022-07-18 11:31:30
+131	invoices-pending-payment	Pending Payment	2020-02-10 00:00:00	2022-07-18 11:31:30
+132	invoices-partial-payment-received	Partial Payment Received	2020-02-10 00:00:00	2022-07-18 11:31:30
+133	invoices-full-payment-received	Full Payment Received	2020-02-10 00:00:00	2022-07-18 11:31:30
+134	invoices-overdue	Overdue	2020-02-10 00:00:00	2022-07-18 11:31:30
+135	invoices-closed-overdue	Closed - Overdue	2020-02-10 00:00:00	2022-07-18 11:31:30
+136	transactions-active	Active	2020-02-10 00:00:00	2022-07-18 11:31:34
+137	ticket-inspection	Inspection	2020-02-10 00:00:00	2022-07-18 11:31:29
+138	fleet-insurance-subscribe-success	Subscribe Success	2020-02-10 00:00:00	2022-07-18 11:31:30
+139	fleet-insurance-subscribe-failed	Subscribe Failed	2020-02-10 00:00:00	2022-07-18 11:31:30
+140	fleet-insurance-unsubscribe-success	Unsubscribe Success	2020-02-10 00:00:00	2022-07-18 11:31:30
+141	fleet-insurance-unsubscribe-failed	Unsubscribe Failed	2020-02-10 00:00:00	2021-08-24 11:02:33
+142	subscription-insurance-subscribe-success	Subscribe Success	2020-02-10 00:00:00	2022-07-18 11:31:30
+143	subscription-insurance-subscribe-failed	Subscribe Failed	2020-02-10 00:00:00	2022-07-18 11:31:31
+144	subscription-insurance-unsubscribe-success	Unsubscribe Success	2020-02-10 00:00:00	2022-07-18 11:31:30
+145	subscription-insurance-unsubscribe-failed	Unsubscribe Failed	2020-02-10 00:00:00	2022-07-18 11:31:31
+146	subscription-insurance-quote-success	Quote Success	2020-02-10 00:00:00	2022-07-18 11:31:30
+147	subscription-insurance-quote-failed	Quote Failed	2020-02-10 00:00:00	2022-07-18 11:31:30
+148	subscription-insurance-confirmed	Confirmed	2020-02-10 00:00:00	2022-07-18 11:31:31
+149	ticket-converted-to-transaction	Converted To Transaction	2020-02-10 00:00:00	2022-11-07 14:17:21
+150	appointment-scheduled	Scheduled	2020-02-10 00:00:00	2022-07-18 11:31:31
+151	appointment-rescheduled	Rescheduled	2020-02-10 00:00:00	2022-07-18 11:31:31
+152	appointment-successful	Successful	2020-02-10 00:00:00	2022-07-18 11:31:31
+153	appointment-to-reschedule-scheduled	To Reschedule	2020-02-10 00:00:00	2022-07-18 11:31:31
+154	appointment-unsuccessful	Unsuccessful	2020-02-10 00:00:00	2022-07-18 11:31:31
+155	floor-stock-case-new	New	2020-02-10 00:00:00	2022-07-18 11:31:31
+156	floor-stock-case-submitted	Submitted	2020-02-10 00:00:00	2022-07-18 11:31:31
+157	floor-stock-case-processed	Processed	2020-02-10 00:00:00	2022-07-18 11:31:31
+158	floor-stock-case-approved	Approved	2020-02-10 00:00:00	2022-07-18 11:31:31
+159	floor-stock-case-rejected	Rejected	2020-02-10 00:00:00	2022-07-18 11:31:31
+160	floor-stock-case-accepted	Accepted	2020-02-10 00:00:00	2022-07-18 11:31:31
+161	floor-stock-case-not-accepted	Not Accepted	2020-02-10 00:00:00	2022-07-18 11:31:31
+162	floor-stock-case-disbursed	Disbursed	2020-02-10 00:00:00	2022-07-18 11:31:31
+163	floor-stock-case-notified	Notified	2020-02-10 00:00:00	2022-07-18 11:31:31
+164	floor-stock-case-settled	Settled	2020-02-10 00:00:00	2022-07-18 11:31:31
+165	floor-stock-account-new	New	2020-02-10 00:00:00	2022-07-18 11:31:31
+166	floor-stock-account-submitted	Submitted	2020-02-10 00:00:00	2022-07-18 11:31:31
+167	floor-stock-account-processed	Processed	2020-02-10 00:00:00	2022-07-18 11:31:31
+168	floor-stock-account-approved	Approved	2020-02-10 00:00:00	2022-07-18 11:31:31
+169	floor-stock-account-rejected	Rejected	2020-02-10 00:00:00	2022-07-18 11:31:31
+170	floor-stock-account-accepted	Accepted	2020-02-10 00:00:00	2022-07-18 11:31:31
+171	floor-stock-account-not-accepted	Not Accepted	2020-02-10 00:00:00	2022-07-18 11:31:31
+172	floor-stock-account-disbursed	Disbursed	2020-02-10 00:00:00	2022-07-18 11:31:31
+173	floor-stock-account-notified	Notified	2020-02-10 00:00:00	2022-07-18 11:31:31
+174	floor-stock-account-settled	Settled	2020-02-10 00:00:00	2022-07-18 11:31:32
+175	floor-stock-extension-requested	Requested	2020-02-10 00:00:00	2022-07-18 11:31:32
+176	floor-stock-extension-approved	Approved	2020-02-10 00:00:00	2022-07-18 11:31:32
+177	floor-stock-extension-rejected	Rejected	2020-02-10 00:00:00	2022-07-18 11:31:32
+178	floor-stock-group-limit-requested	Requested	2020-02-10 00:00:00	2022-07-18 11:31:32
+179	floor-stock-group-limit-approved	Approved	2020-02-10 00:00:00	2022-07-18 11:31:32
+180	floor-stock-group-limit-rejected	Rejected	2020-02-10 00:00:00	2022-07-18 11:31:32
+181	floor-stock-fee-unpaid	Unpaid	2020-02-10 00:00:00	2021-08-24 11:02:33
+182	floor-stock-fee-paid	Paid	2020-02-10 00:00:00	2021-08-24 11:02:33
+183	floor-stock-disbursement-requested	Requested	2020-02-10 00:00:00	2022-07-18 11:31:32
+184	floor-stock-disbursement-approved	Approved	2020-02-10 00:00:00	2022-07-18 11:31:32
+185	floor-stock-disbursement-rejected	Rejected	2020-02-10 00:00:00	2022-07-18 11:31:32
+186	transactions-closed	Closed	2020-02-10 00:00:00	2022-07-18 11:31:34
+187	transactions-new	New	2020-02-10 00:00:00	2022-07-18 11:31:34
+188	lead-qualifications-waiting	Waiting	2020-02-10 00:00:00	2022-07-18 11:31:32
+189	lead-qualifications-in-progress	Progress	2020-02-10 00:00:00	2022-07-18 11:31:32
+190	lead-qualifications-completed	Completed	2020-02-10 00:00:00	2022-07-18 11:31:32
+191	appointment-no-meet-up	No Meet Up	2020-02-10 00:00:00	2022-07-18 11:31:32
+192	auctions-scheduled	Scheduled	2020-02-10 00:00:00	2022-07-18 11:31:32
+193	floor-stock-transaction-new	New	2020-02-10 00:00:00	2022-07-18 11:31:32
+194	floor-stock-transaction-checked	Called Bank to Check	2020-02-10 00:00:00	2022-07-18 11:31:32
+195	floor-stock-transaction-released	Car Released by Bank	2020-02-10 00:00:00	2022-07-18 11:31:32
+196	consumer-app-sell-reviewing-your-request	Reviewing Your Request	2020-02-17 12:19:25	2022-07-18 11:31:32
+197	consumer-app-sell-more-details-required	More Details Required	2020-02-17 12:19:25	2022-07-18 11:31:32
+198	consumer-app-sell-scheduled-for-auction	Scheduled for Auction	2020-02-17 12:19:25	2022-07-18 11:31:32
+199	consumer-app-sell-in-auction	In Auction	2020-02-17 12:19:25	2022-07-18 11:31:32
+200	consumer-app-sell-reviewing-bids	Reviewing Bids	2020-02-17 12:19:25	2022-07-18 11:31:32
+201	consumer-app-sell-meetup-scheduled	Meetup Scheduled	2020-02-17 12:19:25	2022-07-18 11:31:32
+202	consumer-app-sell-meetup-rescheduled	Meetup Rescheduled	2020-02-17 12:19:25	2022-07-18 11:31:32
+203	consumer-app-sell-request-closed	Request Closed	2020-02-17 12:19:25	2022-07-18 11:31:32
+204	consumer-app-sell-scheduled-for-handover	Scheduled for Handover	2020-02-17 12:19:25	2022-07-18 11:31:32
+205	consumer-app-sell-handover-rescheduled	Handover Rescheduled	2020-02-17 12:19:25	2022-07-18 11:31:32
+206	consumer-app-sell-car-sold	Car Sold	2020-02-17 12:19:25	2022-07-18 11:31:32
+207	consumer-app-connect-car-verifying	Verifying	2020-02-17 12:19:25	2022-07-18 11:31:32
+208	consumer-app-connect-car-connected	Connected	2020-02-17 12:19:25	2022-07-18 11:31:32
+209	consumer-app-connect-car-unsuccessful	Unsuccessful	2020-02-17 12:19:25	2022-07-18 11:31:32
+210	ticket-reopened	Reopened	2020-02-24 11:26:53	2022-11-07 14:17:15
+211	transaction-fee-requested	Requested	2020-03-02 14:52:05	2022-07-18 11:31:33
+212	transaction-fee-approved	Approved	2020-03-02 14:52:05	2022-07-18 11:31:33
+213	transaction-fee-rejected	Rejected	2020-03-02 14:52:05	2022-07-18 11:31:33
+214	lead-inspection	Inspection	2020-03-02 14:52:05	2022-07-18 11:31:32
+215	lead-auction	Auction	2020-03-02 14:52:05	2022-07-18 11:31:32
+216	lead-takeover	Takeover	2020-03-02 14:52:06	2022-07-18 11:31:33
+217	lead-negotiation	Negotiation	2020-03-02 14:52:06	2022-07-18 11:31:33
+218	lead-viewing	Viewing	2020-03-02 14:52:06	2022-07-18 11:31:33
+219	lead-verification	Verification	2020-03-02 14:52:06	2022-07-18 11:31:33
+220	lead-handover	Handover	2020-03-02 14:52:06	2022-07-18 11:31:33
+221	lead-closed	Closed	2020-03-02 14:52:06	2022-07-18 11:31:33
+222	ticket-created-from-lead	Created From Lead	2020-03-02 14:52:06	2022-11-07 14:17:15
+223	transaction-credit-requested	Requested	2020-03-23 12:50:57	2022-07-18 11:31:33
+224	transaction-credit-approved	Approved	2020-03-23 12:50:57	2022-07-18 11:31:33
+225	transaction-credit-rejected	Rejected	2020-03-23 12:50:57	2022-07-18 11:31:33
+226	ticket-subscription-new	New - Subscription	2020-03-23 12:50:57	2022-11-07 14:17:15
+227	ticket-subscription-contacted	Contacted - Subscription	2020-03-23 12:50:57	2022-11-07 14:17:15
+228	ticket-subscription-no-response	No Response	2020-03-23 12:50:57	2022-11-07 14:17:15
+229	ticket-subscription-uninterested	Uninterested	2020-03-23 12:50:57	2022-11-07 14:17:15
+230	ticket-subscription-converted-to-lead	Converted to Lead - Subscription	2020-03-23 12:50:57	2022-11-07 14:17:15
+231	ticket-subscription-deposit-failed	Deposit Failed	2020-03-23 12:50:57	2020-06-22 14:31:42
+232	lead-subscription-potential	Potential	2020-03-23 12:50:57	2022-07-18 11:31:33
+233	lead-subscription-pending	Pending	2020-03-23 12:50:57	2022-07-18 11:31:33
+234	lead-subscription-looking-for-new-car	Looking For - New Cars	2020-03-23 12:50:57	2022-07-18 11:31:33
+235	lead-subscription-looking-for-used-car	Looking For - Used Cars	2020-03-23 12:50:57	2022-07-18 11:31:33
+236	lead-subscription-viewing-scheduled	Viewing Scheduled	2020-03-23 12:50:57	2022-07-18 11:31:33
+237	lead-subscription-deposit-collected	Deposit Collected	2020-03-23 12:50:57	2022-07-18 11:31:33
+238	lead-subscription-collection-scheduled	Collection Scheduled	2020-03-23 12:50:57	2022-07-18 11:31:33
+239	lead-subscription-subscribed	Subscribed	2020-03-23 12:50:57	2022-07-18 11:31:33
+240	lead-subscription-deposit-failed	Deposit Failed	2020-03-23 12:50:57	2020-03-23 12:50:57
+241	lead-subscription-closed	Closed	2020-03-23 12:50:58	2022-07-18 11:31:33
+242	transaction-fee-invoiced	Invoiced	2020-03-30 11:41:04	2022-07-18 11:31:33
+243	transaction-credit-invoiced	Invoiced	2020-03-30 11:41:04	2022-07-18 11:31:33
+244	transaction-invoice-new	New	2020-03-30 11:41:04	2022-07-18 11:31:33
+245	transaction-invoice-issued	Issued	2020-03-30 11:41:04	2022-07-18 11:31:33
+246	transaction-invoice-partial-payment	Partial Payment Received	2020-03-30 11:41:04	2022-07-18 11:31:33
+247	transaction-invoice-full-payment	Full Payment Received	2020-03-30 11:41:04	2022-07-18 11:31:33
+248	transaction-invoice-closed-outstanding	Closed Outstanding	2020-03-30 11:41:04	2022-07-18 11:31:33
+249	transaction-payment-collected	Completed	2020-03-30 11:41:04	2022-07-18 11:31:34
+250	transaction-payment-verified	Verified	2020-03-30 11:41:04	2022-07-18 11:31:34
+251	appointment-schedule-confirmed	Schedule Confirmed	2020-03-30 12:51:22	2022-07-18 11:31:34
+252	transaction-fee-deactivated	Deactivated	2020-04-06 12:50:09	2022-07-18 11:31:33
+253	transaction-credit-deactivated	Deactivated	2020-04-06 12:50:09	2022-07-18 11:31:33
+254	ticket-subscription-reserved	Reserved	2020-04-06 12:50:09	2023-04-03 14:50:22
+255	transaction-invoice-closed	Closed	2020-04-13 13:51:12	2022-07-18 11:31:33
+256	transactions-closed-pending-final-invoice	Closed - Pending Final Invoice	2020-04-13 13:51:12	2022-07-18 11:31:34
+257	transaction-payment-charge-new	New	2020-05-11 13:56:52	2022-07-18 11:31:34
+258	transaction-payment-charge-success	Success	2020-05-11 13:56:52	2022-07-18 11:31:34
+259	transaction-payment-charge-failure	Failure	2020-05-11 13:56:52	2022-07-18 11:31:34
+260	scrap-lead-new	New	2020-05-11 13:56:52	2022-07-18 11:31:34
+261	scrap-lead-assigned	Assigned	2020-05-11 13:56:52	2022-07-18 11:31:34
+262	scrap-lead-contacted	Contacted	2020-05-11 13:56:52	2022-07-18 11:31:34
+263	scrap-lead-unreachable	Unreachable	2020-05-11 13:56:52	2022-07-18 11:31:34
+264	scrap-lead-offer-rejected	Offer Rejected	2020-05-11 13:56:52	2022-07-18 11:31:35
+265	scrap-lead-converted-to-ticket	Converted to Ticket	2020-05-11 13:56:52	2022-07-18 11:31:35
+266	scrap-lead-closed	Close	2020-05-11 13:56:52	2022-07-18 11:31:35
+267	ticket-converted-from-scrap	Converted from Scrap	2020-05-11 13:56:52	2022-07-18 11:31:30
+268	loan-cases-pending-approval	Pending Approval	2020-05-26 12:41:19	2022-07-18 11:31:28
+269	loan-application-approval-approved	Approved	2020-05-26 12:41:19	2022-07-18 11:31:28
+270	loan-application-approval-rejected	Rejected	2020-05-26 12:41:19	2022-07-18 11:31:28
+271	loan-party-myinfo-new	New	2020-05-26 12:41:19	2022-07-18 11:31:28
+272	loan-party-myinfo-completed	Completed	2020-05-26 12:41:19	2022-07-18 11:31:28
+273	fleet-available	Available	2020-06-01 12:50:39	2022-07-18 11:31:30
+274	fleet-reserved	Reserved	2020-06-01 12:50:39	2022-07-18 11:31:30
+275	fleet-unavailable	Unavailable	2020-06-01 12:50:39	2022-07-18 11:31:30
+276	fleet-insurance-no-insurance	No insurance	2020-06-01 12:50:40	2022-07-18 11:31:30
+277	ntuc-mileage-report-generated	Generated	2020-06-01 12:50:41	2022-07-18 11:31:35
+278	ntuc-mileage-report-sent	Sent	2020-06-01 12:50:41	2022-07-18 11:31:35
+279	ntuc-mileage-report-failed-to-send	Failed to Send	2020-06-01 12:50:41	2022-07-18 11:31:35
+280	listings-pending-sale	Pending Sale	2020-06-08 13:11:02	2021-08-24 11:02:33
+281	listings-coming-soon	Coming Soon	2020-06-08 13:11:02	2021-08-24 11:02:33
+282	listings-sold	Sold	2020-06-08 13:11:02	2022-07-18 11:31:28
+283	loan-approval-request-new	New	2020-06-08 13:11:02	2022-07-18 11:31:28
+284	loan-approval-request-approved	Approved	2020-06-08 13:11:02	2022-07-18 11:31:28
+285	loan-approval-request-rejected	Rejected	2020-06-08 13:11:02	2022-07-18 11:31:28
+286	loan-approval-request-appealed	Appeal Requested	2020-06-08 13:11:02	2022-07-18 11:31:29
+287	loan-approval-request-varied	Variation Requested	2020-06-08 13:11:02	2022-07-18 11:31:29
+288	loan-approval-request-variation-acknowledged	Variation Acknowledged	2020-06-08 13:11:02	2022-07-18 11:31:29
+289	endorse-fleet-insurance-success	Success	2020-06-08 13:11:03	2022-07-18 11:31:35
+290	endorse-fleet-insurance-failed	Failed	2020-06-08 13:11:03	2022-07-18 11:31:35
+291	lead-qualifications-failed	Failed	2020-06-22 14:31:43	2022-07-18 11:31:32
+294	lead-indemnity-form-pending	Pending	2020-07-13 14:18:48	2022-07-18 11:31:35
+295	lead-indemnity-form-completed	Completed	2020-07-13 14:18:48	2022-07-18 11:31:35
+296	auctions-preview	Preview	2020-07-20 11:06:39	2022-07-18 11:31:27
+297	inspection-verified	Verified	2020-07-20 11:06:41	2022-07-18 11:31:35
+298	inspection-pending	Pending	2020-07-20 11:06:41	2022-07-18 11:31:35
+299	inspection-rejected	Rejected	2020-07-20 11:06:41	2022-07-18 11:31:35
+300	transactions-processing	Processing	2020-08-19 12:10:05	2022-07-18 11:31:34
+301	transactions-car-in	Car-In	2020-08-19 12:10:05	2022-07-18 11:31:34
+302	transactions-collect	Ready to collect	2020-08-19 12:10:05	2022-07-18 11:31:34
+303	transactions-paid	Paid	2020-08-19 12:10:05	2022-07-18 11:31:34
+304	transactions-handover	Delivered	2020-08-19 12:10:05	2022-07-18 11:31:34
+305	transactions-completed	Completed	2020-08-19 12:10:05	2022-07-18 11:31:34
+306	inspection-pre-handover-car-in	Car In	2020-08-19 12:10:05	2022-07-18 11:31:35
+307	inspection-pre-handover-done	Done	2020-08-19 12:10:05	2022-07-18 11:31:35
+308	inspection-pre-handover-review	Review	2020-08-19 12:10:05	2022-07-18 11:31:35
+309	inspection-pre-handover-approve	Approve	2020-08-19 12:10:05	2022-07-18 11:31:35
+310	lead-potential	Potential	2020-02-10 00:00:00	2021-08-24 11:02:33
+311	lead-qualifications-rejected	Rejected	2020-09-02 00:26:11	2022-07-18 11:31:32
+312	inspection-pre-handover-reject	Reject	2020-09-02 00:26:11	2022-07-18 11:31:35
+313	lead-qualifications-stopped	Stopped	2020-09-21 17:12:45	2022-07-18 11:31:32
+314	transactions-request-verification	Verification Requested	2020-09-21 17:12:46	2022-07-18 11:31:34
+315	lead-transaction	Transaction	2020-10-01 02:34:25	2022-07-18 11:31:33
+316	fleet-insurance-expired	Expired	2020-12-02 15:42:35	2022-07-18 11:31:30
+318	subscription-insurance-expired	Expired	2020-12-02 15:42:35	2022-07-18 11:31:31
+320	fleet-insurance-renewed	Renewed	2020-12-15 03:41:52	2022-07-18 11:31:30
+321	subscription-insurance-renewed	Renewed	2020-12-15 03:41:53	2022-07-18 11:31:31
+322	inventories-used-inspecting	Inspecting	2020-12-15 03:41:54	2022-07-18 11:31:35
+323	inventories-used-follow-up	Follow Up	2020-12-15 03:41:54	2022-07-18 11:31:35
+324	inventories-used-pending-seller	Pending Seller	2020-12-15 03:41:54	2022-07-18 11:31:35
+325	inventories-used-pending-meetup	Pending Meetup	2020-12-15 03:41:54	2022-07-18 11:31:35
+326	insurance-disbursement-pending	Pending	2021-02-01 14:14:14	2022-07-18 11:31:35
+327	insurance-disbursement-in-progress	In Progress	2021-02-01 14:14:14	2022-07-18 11:31:35
+328	insurance-disbursement-disbursed	Disbursed	2021-02-01 14:14:14	2022-07-18 11:31:35
+329	policy-street-insurance-unpaid	Unpaid	2021-02-01 14:14:14	2022-07-18 11:31:35
+330	policy-street-insurance-paid	Paid	2021-02-01 14:14:14	2022-07-18 11:31:35
+331	policy-street-insurance-completed	Completed	2021-02-01 14:14:14	2022-07-18 11:31:35
+332	fpx-payment-pending	Pending	2021-02-01 14:14:14	2022-07-18 11:31:35
+333	fpx-payment-success	Success	2021-02-01 14:14:14	2022-07-18 11:31:35
+334	fpx-payment-failed	Failed	2021-02-01 14:14:14	2022-07-18 11:31:35
+335	transaction-conllection-approved	Approved	2021-03-10 15:48:45	2021-03-10 15:48:45
+336	transactions-approvals-new	New	2021-03-10 15:48:45	2022-07-18 11:31:34
+337	transactions-approvals-pending	Pending	2021-03-10 15:48:45	2022-07-18 11:31:34
+338	transactions-approvals-approved	Approved	2021-03-10 15:48:45	2022-07-18 11:31:34
+339	transactions-approvals-rejected	Rejected	2021-03-10 15:48:45	2022-07-18 11:31:34
+340	transactions-approvals-cancelled	Cancelled	2021-03-10 15:48:45	2022-07-18 11:31:34
+341	leasing-agreements-new	New	2021-03-10 15:48:45	2022-07-18 11:31:35
+342	leasing-agreements-active	Active	2021-03-10 15:48:45	2022-07-18 11:31:35
+343	leasing-agreements-closed-pending-final-invoice	Closed - Pending Final Invoice	2021-03-10 15:48:45	2022-07-18 11:31:35
+344	leasing-agreements-closed	Closed	2021-03-10 15:48:45	2022-07-18 11:31:35
+345	leasing-agreements-cancelled	Cancelled	2021-03-10 15:48:45	2022-07-18 11:31:35
+346	leasing-agreement-fee-requested	Requested	2021-03-10 15:48:45	2022-07-18 11:31:35
+347	leasing-agreement-fee-approved	Approved	2021-03-10 15:48:45	2022-07-18 11:31:36
+348	leasing-agreement-fee-rejected	Rejected	2021-03-10 15:48:45	2022-07-18 11:31:36
+349	leasing-agreement-fee-invoiced	Invoiced	2021-03-10 15:48:45	2022-07-18 11:31:36
+350	leasing-agreement-fee-deactivated	Deactivated	2021-03-10 15:48:45	2022-07-18 11:31:36
+351	leasing-agreement-credit-requested	Requested	2021-03-10 15:48:45	2022-07-18 11:31:36
+352	leasing-agreement-credit-approved	Approved	2021-03-10 15:48:45	2022-07-18 11:31:36
+353	leasing-agreement-credit-rejected	Rejected	2021-03-10 15:48:45	2022-07-18 11:31:36
+354	leasing-agreement-credit-invoiced	Invoiced	2021-03-10 15:48:45	2022-07-18 11:31:36
+355	leasing-agreement-credit-deactivated	Deactivated	2021-03-10 15:48:45	2022-07-18 11:31:36
+356	leasing-agreement-invoice-new	New	2021-03-10 15:48:45	2022-07-18 11:31:36
+357	leasing-agreement-invoice-issued	Issued	2021-03-10 15:48:45	2022-07-18 11:31:36
+358	leasing-agreement-invoice-partial-payment	Partial Payment Received	2021-03-10 15:48:46	2022-07-18 11:31:36
+359	leasing-agreement-invoice-full-payment	Full Payment Received	2021-03-10 15:48:46	2022-07-18 11:31:36
+360	leasing-agreement-invoice-closed-outstanding	Closed Outstanding	2021-03-10 15:48:46	2022-07-18 11:31:36
+361	leasing-agreement-invoice-closed	Closed	2021-03-10 15:48:46	2022-07-18 11:31:36
+362	leasing-agreement-payment-collected	Completed	2021-03-10 15:48:46	2022-07-18 11:31:36
+363	leasing-agreement-payment-verified	Verified	2021-03-10 15:48:46	2022-07-18 11:31:36
+364	leasing-agreement-payment-charge-new	New	2021-03-10 15:48:46	2022-07-18 11:31:36
+365	leasing-agreement-payment-charge-success	Success	2021-03-10 15:48:46	2022-07-18 11:31:36
+366	leasing-agreement-payment-charge-failure	Failure	2021-03-10 15:48:46	2022-07-18 11:31:36
+367	transactions-draft	Draft	2021-03-12 07:10:42	2022-07-18 11:31:34
+368	transactions-transferred	Transferred	2021-03-12 07:10:42	2022-07-18 11:31:34
+369	transaction-collection-approved	Approved	2021-04-05 13:24:18	2022-07-18 11:31:33
+370	transactions-void-buyer-backout	Voided - Buyer Back Out	2021-04-05 13:24:19	2022-07-18 11:31:34
+371	transactions-void-seller-backout	Voided - Seller Back Out	2021-04-05 13:24:19	2022-07-18 11:31:34
+372	ticket-rejected	Rejected	2021-04-13 13:56:26	2022-07-18 11:31:30
+373	ticket-booked	Booked	2021-04-29 12:36:09	2022-07-18 11:31:30
+374	loan-auto-approval-auto-approved	Auto Approved	2021-05-11 04:55:25	2022-07-18 11:31:29
+375	loan-auto-approval-auto-rejected	Auto Rejected	2021-05-11 04:55:25	2022-07-18 11:31:29
+376	loan-auto-approval-requires-intervention	Requires Intervention	2021-05-11 04:55:25	2022-07-18 11:31:29
+377	loan-auto-approval-follow-up	Follow Up	2021-05-11 04:55:25	2022-07-18 11:31:29
+378	loan-auto-approval-processing	Processing	2021-05-11 04:55:25	2022-07-18 11:31:29
+379	ticket-viewing-completed	Viewing Completed	2021-05-28 09:17:37	2022-07-18 11:31:36
+380	ticket-interested	Interested	2021-05-28 09:17:37	2022-11-07 14:17:19
+381	transactions-cancelled-confirmed	Cancelled Confirmed	2021-06-09 07:31:46	2022-07-18 11:31:34
+382	transactions-cancelled-pending	Cancelled Pending	2021-06-09 07:31:46	2022-07-18 11:31:34
+384	ticket-ai-valuation-pending	Pending Valuation	2021-06-30 04:24:21	2022-07-18 11:31:36
+385	ticket-ai-valuation-completed	Pending Acceptance	2021-06-30 04:24:21	2022-07-18 11:31:36
+386	ticket-ai-valuation-fetching-lta-fail	Fetching fail	2021-06-30 04:24:21	2022-11-07 14:17:19
+387	ticket-ai-valuation-fetch-lta-fail	Fail-LTA Fetch Fail	2021-06-30 04:24:21	2022-07-18 11:31:36
+388	ticket-ai-valuation-accepted	Accepted	2021-06-30 04:24:21	2022-11-07 14:17:19
+389	ticket-ai-valuation-rejected	Rejected (AI)	2021-06-30 04:24:21	2022-11-07 14:17:19
+390	transaction-payment-breakdown-draft	Draft	2021-07-12 14:51:25	2022-07-18 11:31:37
+391	transaction-payment-breakdown-submit	Submit	2021-07-12 14:51:25	2022-07-18 11:31:37
+392	transaction-payment-breakdown-approved	Approved	2021-07-12 14:51:25	2022-07-18 11:31:37
+393	transaction-payment-breakdown-rejected	Rejected	2021-07-12 14:51:25	2022-07-18 11:31:37
+394	transactions-floor-stock-approved	Floor Stock Approved	2021-07-12 14:51:25	2022-07-18 11:31:37
+395	transactions-floor-stock-settled	Floor Stock Settled	2021-07-12 14:51:26	2022-07-18 11:31:37
+396	ticket-accepted	Accepted	2021-07-19 12:41:54	2022-11-08 01:59:01
+397	transaction-payment-new	New	2021-08-02 15:13:54	2022-07-18 11:31:33
+398	transaction-payment-approved	Approved	2021-08-02 15:13:54	2022-07-18 11:31:33
+399	transaction-payment-checked	Checked	2021-08-02 15:13:54	2022-07-18 11:31:33
+400	transaction-payment-paid	Paid	2021-08-02 15:13:54	2022-07-18 11:31:33
+401	transactions-cancelled-approved	Cancelled Approved	2021-08-02 15:13:54	2022-07-18 11:31:34
+402	transactions-exchange-pending	Exchange Pending	2021-08-02 15:13:54	2022-07-18 11:31:34
+403	transactions-exchange-approved	Exchange Approved	2021-08-02 15:13:54	2026-06-08 14:10:57
+404	transactions-exchange-confirmed	Exchange Confirmed	2021-08-02 15:13:54	2022-07-18 11:31:34
+405	owned-inventories-ready-for-sale	Ready for Sale	2021-08-02 15:13:55	2022-07-18 11:31:36
+406	owned-inventories-incoming	Incoming	2021-08-02 15:13:55	2022-07-18 11:31:36
+407	owned-inventories-pending-delivery	Pending Delivery	2021-08-02 15:13:55	2022-07-18 11:31:36
+408	owned-inventories-car-in	Car Arrived	2021-08-02 15:13:55	2022-07-18 11:31:36
+409	owned-inventories-sold	Sold	2021-08-02 15:13:55	2022-07-18 11:31:36
+410	owned-inventories-scrap	Scrap	2021-08-02 15:13:55	2021-08-24 11:17:51
+411	owned-inventories-consignment	Consignment	2021-08-02 15:13:55	2021-08-24 11:17:51
+412	owned-inventories-leasing	Leasing	2021-08-02 15:13:55	2021-08-24 11:17:51
+413	owned-inventories-refurbishing	Reconditioning	2021-08-02 15:13:55	2022-07-18 11:31:36
+414	owned-inventories-dealer	Dealer	2021-08-02 15:13:55	2021-08-24 11:17:51
+415	owned-inventories-trade-in	Trade-in	2021-08-02 15:13:55	2021-08-24 11:17:51
+416	owned-inventories-pending-inspection	Pending Inspection	2021-08-02 15:13:55	2021-08-24 11:17:51
+417	owned-inventories-booked	Booked	2021-08-02 15:13:55	2022-07-18 11:31:36
+418	owned-inventories-floorstock-new	New	2021-08-02 15:13:55	2022-07-18 11:31:37
+419	owned-inventories-floorstock-pending-submission	Pending Submission	2021-08-02 15:13:55	2022-07-18 11:31:37
+420	owned-inventories-floorstock-submitted	Submitted	2021-08-02 15:13:55	2022-07-18 11:31:37
+421	owned-inventories-floorstock-transferred	Transferred	2021-08-02 15:13:55	2022-07-18 11:31:37
+422	owned-inventories-floorstock-pending-disbursement	Pending Disbursement	2021-08-02 15:13:55	2022-07-18 11:31:37
+423	owned-inventories-floorstock-disbursed	Disbursed	2021-08-02 15:13:55	2022-07-18 11:31:37
+424	owned-inventories-floorstock-settled	Settled	2021-08-02 15:13:55	2022-07-18 11:31:37
+425	owned-inventories-floorstock-rejected	Rejected	2021-08-02 15:13:55	2022-07-18 11:31:37
+426	owned-inventories-workshop-general-service	Workshop - General Service	2021-08-02 15:13:55	2021-08-24 11:17:51
+427	owned-inventories-workshop-body-paint	Workshop - Body & Paint	2021-08-02 15:13:55	2021-08-24 11:17:51
+428	owned-inventories-workshop-detailing	Workshop - Detailing	2021-08-02 15:13:55	2021-08-24 11:17:51
+429	owned-inventories-warehouse	Warehouse	2021-08-02 15:13:55	2021-08-24 11:17:51
+430	auctions-restarting	Restarting	2021-08-16 14:26:39	2022-07-18 11:31:37
+431	appointment-cancel	Cancel	2021-08-23 13:35:48	2022-07-18 11:31:37
+432	lead-inspected	Inspected	2021-08-23 13:35:48	2022-07-18 11:31:37
+433	lead-not-inspected	Not Inspected	2021-08-23 13:35:48	2022-07-18 11:31:37
+434	lead-deposit-received-by-seller	Deposit Received by Seller	2021-08-23 13:35:48	2022-07-18 11:31:37
+435	lead-handover-scheduled	Handover Scheduled	2021-08-23 13:35:48	2022-07-18 11:31:37
+436	lead-in-auction-no-bidded	In Auction - No Bidded	2021-08-23 13:35:48	2022-07-18 11:31:37
+437	lead-in-auction-bidded	In Auction - Bidded	2021-08-23 13:35:48	2022-07-18 11:31:37
+438	lead-re-auction-no-bidded	Re-Auction - No Bidded	2021-08-23 13:35:48	2022-07-18 11:31:37
+439	lead-re-auction-bidded	Re-Auction - Bidded	2021-08-23 13:35:48	2022-07-18 11:31:37
+440	lead-deposit-received-by-carro	Deposit Received by Carro	2021-08-23 13:35:48	2022-07-18 11:31:37
+441	lead-sold-to-dealer	Sold to Dealer	2021-08-23 13:35:48	2022-07-18 11:31:37
+442	lead-rejected-by-dealer	Rejected by Dealer	2021-08-23 13:35:48	2022-07-18 11:31:37
+443	lead-viewing-scheduled	Viewing Scheduled	2021-08-23 13:35:48	2022-07-18 11:31:37
+444	ticket-converted-to-buy-in-lead	Converted to Buy In Lead	2021-08-30 14:13:24	2022-07-18 11:31:29
+445	lead-closed-converted	Closed - Converted	2021-08-30 14:13:25	2022-07-18 11:31:30
+446	owned-inventories-inventory	Inventory	2021-08-30 14:13:26	2022-03-22 11:43:17
+447	owned-inventories-pending-collection	Pending Collection	2021-08-30 14:13:26	2022-03-22 11:43:17
+448	owned-inventories-scrap	Scrap	2021-08-30 14:13:26	2022-03-22 11:43:17
+449	owned-inventories-consignment	Consignment	2021-08-30 14:13:26	2022-03-22 11:43:17
+450	owned-inventories-leasing	Leasing	2021-08-30 14:13:26	2022-03-22 11:43:17
+451	owned-inventories-workshop	Workshop	2021-08-30 14:13:26	2022-03-22 11:43:17
+452	owned-inventories-dealer	Dealer	2021-08-30 14:13:26	2022-03-22 11:43:17
+453	owned-inventories-trade-in	Trade-in	2021-08-30 14:13:26	2022-03-22 11:43:17
+454	owned-inventories-pending-inspection	Pending Inspection	2021-08-30 14:13:26	2022-03-22 11:43:17
+455	owned-inventories-pending-handover	Pending Handover	2021-08-30 14:13:26	2022-03-22 11:43:17
+456	owned-inventories-workshop-general-service	Workshop - General Service	2021-08-30 14:13:27	2022-03-22 11:43:17
+457	owned-inventories-workshop-body-paint	Workshop - Body & Paint	2021-08-30 14:13:27	2022-03-22 11:43:17
+458	owned-inventories-workshop-detailing	Workshop - Detailing	2021-08-30 14:13:27	2022-03-22 11:43:17
+459	owned-inventories-warehouse	Warehouse	2021-08-30 14:13:27	2022-03-22 11:43:17
+460	floor-stock-case-partially-settled	Partially Settled	2021-09-27 13:13:58	2022-07-18 11:31:31
+461	floor-stock-account-partially-settled	Partially Settled	2021-09-27 13:13:58	2022-07-18 11:31:31
+462	lead-quotation-completed	Pending Acceptance	2021-10-04 11:55:21	2022-07-18 11:31:37
+463	lead-quotation-accepted	Accepted	2021-10-04 11:55:21	2022-07-18 11:31:37
+464	ticket-indemnity-form-pending	Ticket - Indemnity Form	2021-10-04 11:55:21	2022-11-07 14:17:20
+465	ticket-indemnity-form-completed	Completed	2021-10-04 11:55:21	2022-11-07 14:17:20
+466	lead-sell-form-draft	Draft	2021-11-01 12:04:26	2022-07-18 11:31:37
+467	lead-sell-form-pending-quotation	Pending Quotation	2021-11-01 12:04:26	2022-07-18 11:31:38
+468	lead-sell-form-pending-acceptance	Pending Acceptance	2021-11-01 12:04:26	2022-07-18 11:31:38
+469	lead-sell-form-accepted	Accepted	2021-11-01 12:04:26	2022-07-18 11:31:38
+470	lead-sell-form-rejected	Rejected Offer	2021-11-01 12:04:26	2022-07-18 11:31:38
+471	lead-inspection-scheduled	Inspection Scheduled	2021-11-01 12:04:27	2022-07-18 11:31:38
+472	lead-in-auction	In Auction	2021-11-08 11:44:39	2022-07-18 11:31:38
+473	ticket-quote-fetched	Quote Fetched	2021-11-15 11:02:15	2021-12-20 08:44:43
+474	ticket-appointment-requested	Appointment Requested	2021-11-15 11:02:15	2021-12-20 08:47:14
+475	ticket-appointment-confirmed	Appointment Confirmed	2021-11-15 11:02:15	2021-12-20 08:45:53
+476	ticket-completed	Completed	2021-11-15 11:02:15	2021-12-20 08:53:13
+477	ticket-subscription-viewing-scheduled	Viewing Scheduled - Subscription	2021-11-29 10:31:27	2022-11-07 14:17:15
+478	ticket-subscription-reserved-scheduled	Collection Scheduled	2021-11-29 10:31:27	2022-11-07 14:17:15
+479	ticket-subscription-pending	Pending - Subscription	2021-11-29 10:31:27	2022-11-07 14:17:15
+480	ticket-subscription-closed	Closed - Subscription	2021-11-29 10:31:27	2023-03-30 06:03:44
+481	subscription-insurance-extend-policy-pending	Pending Policy Extend	2021-12-06 11:45:16	2022-07-18 11:31:31
+482	subscription-insurance-extend-policy-approved	Approved Policy Extend	2021-12-06 11:45:16	2022-07-18 11:31:31
+483	subscription-insurance-extend-policy-rejected	Rejected Policy Extend	2021-12-06 11:45:16	2022-07-18 11:31:31
+484	subscription-insurance-extend-policy-failed	Failed Policy Extend	2021-12-06 11:45:16	2022-07-18 11:31:31
+485	subscription-insurance-renewal-policy-approved	Renewal Policy Approved	2021-12-06 11:45:16	2022-07-18 11:31:31
+486	ticket-quoted	Quoted	2021-12-06 11:45:20	2022-11-07 14:17:20
+487	ticket-confirmed	Confirmed	2021-12-06 11:45:20	2022-11-07 14:17:20
+488	lead-quotation-rejected	Rejected	2021-12-13 13:51:15	2022-07-18 11:31:33
+489	lead-sell-form-pending-appointment	Pending Appointment	2021-12-13 13:51:18	2022-07-18 11:31:38
+490	lead-sell-form-pending-inspection	Pending Inspection	2021-12-13 13:51:18	2022-07-18 11:31:38
+491	lead-sell-form-inspection-completed	Inspection Completed	2021-12-13 13:51:18	2022-07-18 11:31:38
+492	lead-sell-form-inspection-start	Inspection Start	2021-12-13 13:51:18	2022-07-18 11:31:38
+493	lead-quotation-estimated-price-submitted	Estimated Price Submitted	2021-12-13 13:51:18	2022-07-18 11:31:38
+494	lead-quotation-offer-price-submitted	Offer Price Submitted	2021-12-13 13:51:18	2022-07-18 11:31:38
+495	workshop-request	Job Request	2022-01-17 11:47:33	2022-07-18 11:31:38
+496	workshop-processing	In Progress	2022-01-17 11:47:33	2022-07-18 11:31:38
+497	workshop-ready	Ready to collect	2022-01-17 11:47:33	2022-07-18 11:31:38
+498	workshop-complete	Completed	2022-01-17 11:47:33	2022-07-18 11:31:38
+499	workshop-cancel	Cancelled	2022-01-17 11:47:33	2022-07-18 11:31:38
+500	inspection-pending-verification	Pending Verification	2022-01-24 12:16:29	2022-07-18 11:31:35
+501	floor-stock-group-limit-cancelled	Cancelled	2022-01-24 12:16:31	2022-07-18 11:31:38
+502	lead-quotation-owner-target-price-submitted	Target Price Submitted	2022-01-24 12:16:31	2022-07-18 11:31:38
+503	lead-pending-car-plate-verification	Pending Car Plate Verification	2022-01-24 12:16:31	2022-07-18 11:31:38
+504	lead-pending-quotation	Pending Quotation	2022-01-24 12:16:31	2022-07-18 11:31:38
+505	lead-closed-car-plate-verification-failed	Closed - Car Plate Verification Failed	2022-01-24 12:16:31	2022-07-18 11:31:38
+506	lead-sell-form-processing	Processing	2022-02-14 11:33:43	2022-07-18 11:31:38
+507	lead-sell-form-completed	Completed	2022-02-14 11:33:43	2022-07-18 11:31:38
+508	lead-sell-form-in-auction	In Auction	2022-02-14 11:33:43	2022-07-18 11:31:38
+509	lead-sell-form-auction-accepted	Auction Accepted	2022-02-14 11:33:43	2022-07-18 11:31:38
+510	lead-sell-form-appointment-unsuccessful	Appointment Unsuccessful	2022-02-14 11:33:43	2022-07-18 11:31:38
+511	lead-sell-form-fis-verification-failed	FIS Verification Failed	2022-02-14 11:33:43	2022-07-18 11:31:38
+512	movement-new	New	2022-02-14 11:33:43	2022-07-18 11:31:38
+513	movement-in-progress	In Progress	2022-02-14 11:33:43	2022-07-18 11:31:38
+514	movement-completed	Completed	2022-02-14 11:33:43	2022-07-18 11:31:38
+515	movement-failed	Failed	2022-02-14 11:33:43	2022-07-18 11:31:38
+516	movement-cancelled	Cancelled	2022-02-14 11:33:43	2022-07-18 11:31:38
+517	movement-confirmed	Confirmed	2022-02-14 11:33:43	2022-07-18 11:31:38
+518	movement-pickup-arrived	Pickup Arrived	2022-02-14 11:33:43	2022-07-18 11:31:38
+519	lead-sell-form-counter-offer-rejected	Counter Offer Rejected	2022-02-15 13:59:10	2022-07-18 11:31:38
+520	lead-car-plate-verification-passed	Car Plate Verification Passed	2022-02-15 13:59:10	2022-07-18 11:31:39
+521	ticket-subscription-subscribed	Subscribed	2022-02-28 12:54:08	2023-04-03 14:50:22
+522	owned-inventories-sale-available	Available	2022-02-28 12:54:12	2022-07-18 11:31:37
+523	owned-inventories-sale-booked	Booked	2022-02-28 12:54:12	2022-07-18 11:31:37
+524	owned-inventories-sale-sold	Sold	2022-02-28 12:54:12	2022-07-18 11:31:37
+525	lead-sell-form-auction-rejected	Auction Reject	2022-02-28 12:54:13	2022-07-18 11:31:38
+526	lead-sell-form-counter-offer-pending-acceptance	Pending Acceptance	2022-02-28 12:54:13	2022-07-18 11:31:38
+527	movement-partially-completed	Partially Completed	2022-02-28 12:54:13	2022-07-18 11:31:38
+528	transaction-partially-completed	Partially Completed	2022-02-28 12:54:13	2022-07-18 11:31:39
+529	lead-sell-form-handover	Handover	2022-02-28 12:54:13	2022-07-18 11:31:39
+530	lead-rejected	Lead Rejected	2022-02-28 12:54:13	2022-07-18 11:31:39
+531	promotion-upcoming	Upcoming	2022-03-21 12:27:58	2022-07-18 11:31:39
+532	promotion-active	Active	2022-03-21 12:27:58	2022-07-18 11:31:39
+533	promotion-completed	Completed	2022-03-21 12:27:58	2022-07-18 11:31:39
+534	subscription-insurance-payment-pending	Payment Pending	2022-03-28 12:38:26	2022-07-18 11:31:31
+535	inspection-pending-quotation	Pending Quotation	2022-04-04 12:33:44	2022-07-18 11:31:35
+536	lead-sell-form-auction-ended	Auction Ended	2022-04-04 12:33:46	2022-07-18 11:31:39
+537	lead-sell-form-auction-cancelled	Auction Cancelled	2022-04-04 12:33:46	2022-07-18 11:31:39
+538	owned-inventories-in-auction	In Auction	2022-04-25 12:27:37	2022-07-18 11:31:36
+539	owned-inventories-handed-over	Handed Over	2022-04-25 12:27:37	2022-07-18 11:31:36
+540	owned-inventories-retail	Retail	2022-04-25 12:27:37	2022-07-18 11:31:36
+541	owned-inventory-intercom-pending	Retail Accept - Pending	2022-04-25 12:27:39	2024-03-25 14:31:01
+542	owned-inventory-intercom-reject-level-1	Retail Reject - 1st	2022-04-25 12:27:39	2024-03-25 14:31:01
+543	owned-inventory-intercom-reject-level-2	Retail Reject - 2nd	2022-04-25 12:27:39	2024-03-25 14:31:01
+544	owned-inventory-intercom-accepted-level-1	Retail Accept - 1st	2022-04-25 12:27:39	2024-03-25 14:31:01
+545	owned-inventory-intercom-accepted-level-2	Retail Accept - Completed	2022-04-25 12:27:39	2024-03-25 14:31:01
+546	owned-inventories-intercom-pending	Retail	2022-04-25 12:27:39	2022-07-18 11:31:39
+547	owned-inventories-reconditioning-required	Required	2022-04-25 12:27:39	2022-07-18 11:31:39
+548	owned-inventories-reconditioning-not-required	Not Required	2022-04-25 12:27:39	2022-07-18 11:31:39
+549	owned-inventories-reconditioning-completed	Completed	2022-04-25 12:27:39	2022-07-18 11:31:39
+550	owned-inventories-rejection-retail-1st	Retail - 1st	2022-04-25 12:27:39	2022-07-18 11:31:39
+551	owned-inventories-rejection-retail-2nd	Retail - 2nd	2022-04-25 12:27:39	2022-07-18 11:31:39
+552	owned-inventories-paid	Paid	2022-04-25 12:27:39	2022-07-18 11:31:39
+553	owned-inventories-transferred	Transferred	2022-04-25 12:27:39	2022-07-18 11:31:39
+554	owned-inventories-completed	Completed	2022-04-25 12:27:39	2022-07-18 11:31:39
+555	owned-inventories-rejected	Rejected	2022-04-25 12:27:39	2022-07-18 11:31:39
+556	agent-financing-form-draft	Draft	2022-05-13 14:47:07	2022-07-18 11:31:39
+557	agent-financing-form-pending-approval	New	2022-05-13 14:47:07	2022-07-18 11:31:39
+558	agent-financing-form-approved	Approved	2022-05-13 14:47:07	2022-07-18 11:31:39
+559	agent-financing-form-rejected	Rejected	2022-05-13 14:47:07	2022-07-18 11:31:39
+560	agent-financing-form-payment-pending-verify	Pending to Verify	2022-05-13 14:47:07	2022-07-18 11:31:39
+561	agent-financing-form-payment-verified	Payment Verified	2022-05-13 14:47:07	2022-07-18 11:31:39
+562	agent-financing-form-overdue	Overdue	2022-05-13 14:47:07	2022-07-18 11:31:39
+563	loan-intent-processing	Processing	2022-05-25 09:11:00	2022-07-18 11:31:39
+564	loan-intent-canceled	Canceled	2022-05-25 09:11:00	2022-07-18 11:31:39
+565	loan-intent-succeeded	Succeeded	2022-05-25 09:11:00	2022-07-18 11:31:39
+566	loan-intent-rejected	Rejected	2022-05-25 09:11:00	2022-07-18 11:31:39
+567	loan-cases-pre-approved	Pre Approved	2022-05-25 09:11:00	2022-07-18 11:31:39
+568	loan-applications-pre-approved	Pre Approved	2022-05-25 09:11:00	2022-07-18 11:31:39
+569	loan-approval-request-pre-approved	Pre Approved	2022-05-25 09:11:00	2022-07-18 11:31:40
+570	subscription-insurance-policy-information-update-success	Subscription Policy Infomation Update Success	2022-05-30 13:46:00	2022-07-18 11:31:31
+571	subscription-insurance-policy-information-update-failed	Subscription Policy Infomation Update Failed	2022-05-30 13:46:00	2022-07-18 11:31:31
+572	owned-inventories-cancelled	Cancelled	2022-05-30 13:46:05	2022-07-18 11:31:40
+573	transaction-payment-cancelled	Cancelled	2022-06-20 13:14:05	2022-07-18 11:31:33
+574	reconditions-incoming	Incoming	2022-06-20 13:14:09	2023-07-31 14:31:25
+575	reconditions-arrived	Arrived	2022-06-20 13:14:09	2023-07-31 14:31:25
+576	reconditions-pre-inspection	Pre Inspection	2022-06-20 13:14:09	2023-07-31 14:31:25
+577	reconditions-idle	Idle	2022-06-20 13:14:09	2023-07-31 14:31:25
+578	reconditions-job-repair	Job - Repair	2022-06-20 13:14:09	2023-07-31 14:31:25
+579	reconditions-job-interior	Job - Interior	2022-06-20 13:14:09	2023-07-31 14:31:25
+580	reconditions-job-respray	Job - Respray	2022-06-20 13:14:09	2023-07-31 14:31:25
+581	reconditions-job-type-rim	Job - Tyre & Rim	2022-06-20 13:14:09	2023-07-31 14:31:25
+582	reconditions-job-accesories	Job - Accesories	2022-06-20 13:14:09	2023-07-31 14:31:25
+583	reconditions-job-car-wash	Job - Car Wash	2022-06-20 13:14:09	2023-07-31 14:31:25
+584	reconditions-qc-repair	QC - Repair	2022-06-20 13:14:10	2023-07-31 14:31:25
+585	reconditions-qc-interior	QC - Interior	2022-06-20 13:14:10	2023-07-31 14:31:25
+586	reconditions-qc-respray	QC - Respray	2022-06-20 13:14:10	2023-07-31 14:31:26
+587	reconditions-qc-type-rim	QC - Tyre & Rim	2022-06-20 13:14:10	2023-07-31 14:31:26
+588	reconditions-qc-accesories	QC - Accesories	2022-06-20 13:14:10	2023-07-31 14:31:26
+589	reconditions-photo-session	Photo Session	2022-06-20 13:14:10	2023-07-31 14:31:26
+590	reconditions-listing	Listing	2022-06-20 13:14:10	2023-03-24 04:01:49
+591	reconditions-completed	Completed	2022-06-20 13:14:10	2023-07-31 14:31:26
+592	reconditions-qc-car-wash	QC - Car Wash	2022-06-20 13:14:10	2023-07-31 14:31:26
+593	ticket-pending-user-input	Pending User Input	2022-06-27 11:08:55	2022-11-07 14:17:20
+594	ticket-manual-pick-up	Manual Pick Up	2022-06-27 11:08:55	2022-11-07 14:17:20
+595	lead-sell-form-payment-document-viewed	Payment Document Viewed	2022-07-04 11:43:53	2022-07-18 11:31:40
+596	lead-sell-form-auction-ended-without-bids	Auction Ended without bid	2022-07-04 11:43:54	2022-07-18 11:31:40
+597	lead-sell-form-auction-active	Auction Active	2022-07-04 11:43:54	2022-07-18 11:31:40
+598	action-new	New	2022-07-04 11:43:54	2022-07-18 11:31:40
+599	action-resolved	Resolved	2022-07-04 11:43:54	2022-07-18 11:31:40
+600	reconditions-job-spare-parts	Job - Spare Parts	2022-07-04 11:43:54	2023-07-31 14:31:25
+601	reconditions-list-inspection	List Inspection	2022-07-04 11:43:55	2023-07-31 14:31:26
+602	ticket-coverted-to-transaction	Converted To Transaction	2022-07-07 04:51:30	2022-07-07 11:53:37
+603	reconditions-rejected	Rejected	2022-07-18 11:31:40	2023-07-31 14:31:26
+604	reconditions-job-cycle	Job Cycle	2022-08-15 10:48:55	2023-07-31 14:31:26
+605	transaction-returned	Returned	2022-08-16 05:49:02	2022-08-16 05:49:02
+606	appointment-unassigned	Unassigned	2022-09-05 10:07:32	2022-09-05 10:07:32
+607	appointment-completed	Completed	2022-09-05 10:07:32	2022-09-05 10:07:32
+608	reconditions-iv-rejected	IV Rejected	2022-09-05 10:07:32	2023-07-31 14:31:26
+609	reconditions-iv-qc	IV QC	2022-09-05 10:07:32	2023-07-31 14:31:26
+610	expense-draft	Not Submitted	2022-09-19 14:37:32	2023-03-06 14:38:04
+611	expense-submitted	Submitted	2022-09-19 14:37:32	2023-03-06 14:38:04
+612	lead-quotation-counter-offer-price	Counter Offer Price	2022-09-19 14:37:32	2022-09-19 14:37:32
+613	auctions-pending-restart	Pending Restart	2022-10-17 14:22:52	2022-10-17 14:22:52
+614	auctions-cancelling	Cancelling	2022-10-17 14:22:52	2022-10-17 14:22:52
+615	expense-approved	Approved	2022-10-17 14:22:59	2023-03-06 14:38:04
+616	expense-reimbursed	Reimbursed	2022-10-17 14:22:59	2023-03-06 14:38:04
+617	expense-rejected	Rejected	2022-10-17 14:22:59	2023-03-06 14:38:04
+618	expense-pending-supervisor-approval	Pending Approval	2022-10-17 14:22:59	2023-03-06 14:38:04
+619	expense-pending-finance-approval	Pending Finance Approval	2022-10-17 14:22:59	2022-10-17 14:22:59
+620	expense-fully-approved	Invoice Approved	2022-10-17 14:22:59	2024-11-04 14:37:19
+621	expense-partially-approved	Partially Approved	2022-10-17 14:23:00	2023-04-10 15:15:57
+622	expense-item-approved	Approved	2022-10-17 14:23:00	2022-10-17 14:23:00
+623	expense-item-rejected	Rejected	2022-10-17 14:23:00	2022-10-17 14:23:00
+624	expense-item-pending	Pending	2022-10-17 14:23:00	2022-10-17 14:23:00
+625	owned-inventory-costs-approved	Approved	2022-10-17 14:23:00	2022-10-17 14:23:00
+626	owned-inventory-intercom-reject-level-3	Retail Reject - 3rd	2022-11-01 11:05:11	2024-03-25 14:31:01
+627	ticket-subscription-deposit-failed	Deposit Failed	2022-11-07 14:17:22	2022-11-07 14:17:22
+628	ticket-quote-fetched	Quote Fetched	2022-11-07 14:17:22	2022-11-07 14:17:22
+629	ticket-appointment-requested	Appointment Requested	2022-11-07 14:17:22	2022-11-07 14:17:22
+630	ticket-appointment-confirmed	Appointment Confirmed	2022-11-07 14:17:22	2022-11-07 14:17:22
+631	ticket-completed	Completed	2022-11-07 14:17:22	2022-11-07 14:17:22
+632	ticket-coverted-to-transaction	Converted To Transaction	2022-11-07 14:17:22	2022-11-07 14:17:22
+633	appointment-new	New	2022-11-29 14:36:47	2022-11-29 14:36:47
+634	appointment-in-progress	In Progress	2022-11-29 14:36:47	2022-11-29 14:36:47
+635	appointment-overdue	Overdue	2022-11-29 14:36:47	2022-11-29 14:36:47
+636	expense-pending-lark-approval	Pending Approval (Lark)	2022-12-13 14:18:54	2023-04-10 15:15:57
+637	expense-item-pending-lark	Pending (Lark)	2022-12-13 14:18:54	2023-04-10 15:15:57
+638	expense-item-approved-lark	Approved (Lark)	2022-12-13 14:18:54	2023-04-10 15:15:57
+639	expense-item-rejected-lark	Rejected (Lark)	2022-12-13 14:18:54	2023-04-10 15:15:57
+640	expense-fully-approved-lark	Fully Approved (Lark)	2022-12-13 14:18:54	2023-04-10 15:15:57
+641	expense-partially-approved-lark	Partially Approved (Lark)	2022-12-13 14:18:54	2023-04-10 15:15:57
+642	expense-rejected-lark	Rejected (Lark)	2022-12-13 14:18:54	2023-04-10 15:15:57
+643	task-scheduled	Scheduled	2022-12-27 14:42:59	2022-12-27 14:42:59
+644	task-overdue	Overdue	2022-12-27 14:42:59	2022-12-27 14:42:59
+645	task-done	Done	2022-12-27 14:42:59	2022-12-27 14:42:59
+646	owned-inventory-sell-3rd-party-paid	3rd Party - Paid	2023-03-06 14:38:04	2023-03-06 14:38:04
+647	owned-inventory-sell-3rd-party-delivered	3rd Party - Delivered	2023-03-06 14:38:04	2023-03-06 14:38:04
+648	owned-inventory-sell-3rd-party-completed	3rd Party - Completed	2023-03-06 14:38:04	2023-03-06 14:38:04
+649	owned-inventory-sell-3rd-party-cancelled	3rd Party - Cancelled	2023-03-06 14:38:04	2023-03-06 14:38:04
+650	owned-inventories-third-party-paid	3rd Party - Paid	2023-03-06 14:38:04	2023-03-06 14:38:04
+651	owned-inventories-third-party-delivered	3rd Party - Delivered	2023-03-06 14:38:04	2023-03-06 14:38:04
+652	ticket-viewing-rescheduled	Viewing Rescheduled	2023-03-20 14:57:42	2023-03-20 14:57:42
+653	transaction-payment-acknowledged	Acknowledged	2023-03-27 15:13:06	2023-03-27 15:13:06
+654	m1-ready	M1 Ready	2023-03-27 15:13:11	2023-03-27 15:13:11
+655	m2-ready	M2 Ready	2023-03-27 15:13:11	2023-03-27 15:13:11
+656	m3-ready	M3 Ready	2023-03-27 15:13:11	2023-03-27 15:13:11
+657	m1-due-soon	M1 Due Soon	2023-03-27 15:13:11	2023-03-27 15:13:11
+658	m2-due-soon	M2 Due Soon	2023-03-27 15:13:11	2023-03-27 15:13:11
+659	m3-due-soon	M3 Due Soon	2023-03-27 15:13:11	2023-03-27 15:13:11
+660	m1-overdue	M1 Overdue	2023-03-27 15:13:11	2023-03-27 15:13:11
+661	m2-overdue	M2 Overdue	2023-03-27 15:13:11	2023-03-27 15:13:11
+662	m3-overdue	M3 Overdue	2023-03-27 15:13:11	2023-03-27 15:13:11
+663	m1-in-progress	M1 In-Progress	2023-03-27 15:13:11	2023-03-27 15:13:11
+664	m2-in-progress	M2 In-Progress	2023-03-27 15:13:11	2023-03-27 15:13:11
+665	m3-in-progress	M3 In-Progress	2023-03-27 15:13:11	2023-03-27 15:13:11
+666	m1-passed	M1 Passed	2023-03-27 15:13:11	2023-03-27 15:13:11
+667	m2-passed	M2 Passed	2023-03-27 15:13:11	2023-03-27 15:13:11
+668	m3-passed	M3 Passed	2023-03-27 15:13:11	2023-03-27 15:13:11
+669	m1-failed	M1 Failed	2023-03-27 15:13:11	2023-03-27 15:13:11
+670	m2-failed	M2 Failed	2023-03-27 15:13:11	2023-03-27 15:13:11
+671	m3-failed	M3 Failed	2023-03-27 15:13:11	2023-03-27 15:13:11
+672	ticket-appointment-schedule-confirmed	Scheduled Confirm	2023-04-10 15:15:58	2023-04-10 15:15:58
+673	ticket-contacted-with-otp	Contacted (with OTP)	2023-05-02 14:31:16	2023-05-02 14:31:16
+674	ticket-failed-to-contact-with-otp	Fail to Contact (with OTP)	2023-05-02 14:31:16	2023-05-02 14:31:16
+675	delivery-idle	Idle	2023-05-29 14:51:19	2023-05-29 14:51:19
+676	delivery-booked	Booked	2023-05-29 14:51:19	2023-05-29 14:51:19
+677	delivery-pdi	PDI	2023-05-29 14:51:19	2023-05-29 14:51:19
+678	delivery-job-cycle	Job Cycle	2023-05-29 14:51:19	2023-05-29 14:51:19
+679	delivery-qc	QC	2023-05-29 14:51:19	2023-05-29 14:51:19
+680	delivery-in-transit	Delivery	2023-05-29 14:51:19	2023-05-29 14:51:19
+681	delivery-completed	Completed	2023-05-29 14:51:19	2023-05-29 14:51:19
+682	delivery-job-new	New	2023-05-29 14:51:19	2023-05-29 14:51:19
+683	delivery-job-in-progress	In Progress	2023-05-29 14:51:19	2023-05-29 14:51:19
+684	delivery-job-in-qc	IN QC	2023-05-29 14:51:19	2023-05-29 14:51:19
+685	delivery-job-failed	Failed	2023-05-29 14:51:19	2023-05-29 14:51:19
+686	delivery-job-completed	Passed	2023-05-29 14:51:19	2023-05-29 14:51:19
+687	owned-inventory-document-pending	Pending	2023-05-29 14:51:19	2023-05-29 14:51:19
+688	owned-inventory-document-valid	Valid	2023-05-29 14:51:20	2023-05-29 14:51:20
+689	owned-inventory-document-renewal-required	Renewal Required	2023-05-29 14:51:20	2023-05-29 14:51:20
+690	delivery-pending-car-verification	Pending Car Verification	2023-05-29 14:51:20	2023-05-29 14:51:20
+691	delivery-pending-pdi	Pending PDI	2023-05-29 14:51:20	2023-05-29 14:51:20
+692	delivery-pdi-in-progress	PDI In Progress	2023-05-29 14:51:20	2023-05-29 14:51:20
+693	delivery-pending-job-cycle	Pending Job Cycle	2023-05-29 14:51:20	2023-05-29 14:51:20
+694	delivery-pending-qc	Pending QC	2023-05-29 14:51:20	2023-05-29 14:51:20
+695	delivery-pending-delivery	Pending Delivery	2023-05-29 14:51:20	2023-05-29 14:51:20
+696	delivery-pending-qc-failed	Failed QC	2023-05-29 14:51:20	2023-05-29 14:51:20
+697	delivery-pending-document	Pending Document	2023-05-29 14:51:20	2023-05-29 14:51:20
+698	transactions-return-pending	Return Pending	2023-07-10 13:55:22	2023-07-10 13:55:22
+699	transactions-return-approved	Return Approved	2023-07-10 13:55:22	2023-07-10 13:55:22
+700	transactions-return-confirmed	Return Confirmed	2023-07-10 13:55:22	2023-07-10 13:55:22
+701	reconditions-pending-approval	Pending Approval	2023-07-31 14:31:25	2023-07-31 14:31:25
+702	quotation-request-to-quote	To Quote	2023-09-19 13:42:08	2023-09-19 13:42:08
+703	quotation-request-quoted	Quoted	2023-09-19 13:42:08	2023-09-19 13:42:08
+704	quotation-request-rejected	Rejected	2023-09-19 13:42:08	2023-09-19 13:42:08
+705	quotation-request-auction	Auction	2023-09-19 13:42:08	2025-01-06 14:16:46
+706	quotation-request-accepted	Accepted	2023-09-19 13:42:08	2023-09-19 13:42:08
+707	quotation-request-closed	Closed	2023-09-19 13:42:08	2023-09-19 13:42:08
+708	quotation-request-archive	Archive	2023-09-19 13:42:08	2023-09-19 13:42:08
+709	quotation-request-draft	Draft	2023-09-19 13:42:08	2023-09-19 13:42:08
+710	quotation-quoted	Quoted	2023-09-19 13:42:08	2024-11-04 14:37:21
+711	quotation-rejected	Rejected	2023-09-19 13:42:08	2024-11-04 14:37:21
+712	quotation-accepted	Accepted	2023-09-19 13:42:08	2024-11-04 14:37:21
+713	quotation-request-activity-user-expected-price	User Expected Price	2023-09-19 13:42:08	2023-09-19 13:42:08
+714	quotation-request-activity-offer-price-submitted	Offer Price Submitted	2023-09-19 13:42:08	2024-11-04 14:37:21
+715	quotation-request-activity-accepted	Accepted	2023-09-19 13:42:08	2026-06-08 14:11:05
+716	quotation-request-activity-rejected	Rejected	2023-09-19 13:42:08	2026-06-08 14:11:05
+717	owned-inventories-phase-stock-in	Stock In	2023-10-02 14:50:48	2023-10-02 14:50:48
+718	owned-inventories-phase-on-sale	On Sale	2023-10-02 14:50:48	2023-10-02 14:50:48
+719	owned-inventories-phase-stock-out	Stock Out	2023-10-02 14:50:48	2023-10-02 14:50:48
+720	owned-inventories-phase-allocating-auction	Allocating Auction	2023-10-02 14:50:48	2023-12-04 14:24:19
+721	owned-inventories-phase-allocating-3rd-party	Allocating Direct Sales	2023-10-02 14:50:48	2024-04-01 14:16:35
+722	owned-inventories-phase-allocating-interco	Allocating Interco	2023-10-02 14:50:48	2024-03-25 14:31:04
+723	auctions-publishing	Publishing	2023-10-02 14:50:48	2023-10-02 14:50:48
+724	auctions-reinspected	Reinspected	2023-10-02 14:50:49	2026-06-08 14:11:05
+725	owned-inventory-sell-3rd-party-updating-status	3rd Party - Updating Status	2023-12-04 14:24:19	2023-12-04 14:24:19
+726	owned-inventories-phase-transaction-completing	Transaction Completing	2023-12-04 14:24:19	2023-12-04 14:24:19
+727	owned-inventories-phase-transaction-delivering	Transaction Delivering	2023-12-04 14:24:19	2023-12-04 14:24:19
+728	auctions-unwanted	Unwanted	2024-01-22 14:13:32	2024-01-22 14:13:32
+729	appointment-auction-reinspection-cancelled	Reinspection Cancelled	2024-01-22 14:13:32	2024-01-22 14:13:32
+730	owned-inventories-phase-allocating-retail	Allocating Retail	2024-03-25 14:31:04	2024-03-25 14:31:04
+731	owned-inventories-phase-pending-retail-acceptance	Pending Retail Acceptance	2024-03-25 14:31:05	2024-03-25 14:31:05
+732	quotation-request-expired	Expired	2024-04-05 16:44:04	2024-04-05 16:44:04
+733	quotation-estimated	Estimated	2024-04-05 16:44:04	2024-04-05 16:44:04
+734	quotation-expired	Expired	2024-04-05 16:44:04	2024-11-04 14:37:21
+735	quotation-request-activity-offer-price-estimated	 Estimation Submitted	2024-04-05 16:44:04	2024-11-04 14:37:21
+736	ticket-inventory-created	Inventory Created	2024-04-05 16:44:04	2024-04-05 16:44:04
+737	ticket-appointment-created	Appointment Created	2024-04-05 16:44:04	2026-06-08 14:11:06
+738	ticket-inspection-started	Inspection Started	2024-04-05 16:44:04	2024-04-05 16:44:04
+739	ticket-pending-quotation	Pending Quotation	2024-04-05 16:44:04	2024-04-05 16:44:04
+740	ticket-quotation-received	Quotation Received	2024-04-05 16:44:04	2024-04-05 16:44:04
+741	ticket-auction-created	Auction Created	2024-04-05 16:44:04	2024-04-05 16:44:04
+742	ticket-auction-completed	Auction Completed	2024-04-05 16:44:04	2024-04-05 16:44:04
+743	ticket-buy-processing	Buy - Processing	2024-04-05 16:44:04	2024-04-05 16:44:04
+744	ticket-x2b-processing	X2B - Processing	2024-04-05 16:44:04	2024-04-05 16:44:04
+745	ticket-buy-pending-ownership-transfer	Buy - Pending Ownership Transfer	2024-04-05 16:44:04	2024-04-05 16:44:04
+746	ticket-x2b-pending-ready-to-collect	X2B - Pending Ready to Collect	2024-04-05 16:44:04	2024-04-05 16:44:04
+747	ticket-buy-pendng-payment-to-seller	Buy - Pending Payment to Seller	2024-04-05 16:44:04	2024-04-05 16:44:04
+748	ticket-x2b-pending-payment-to-seller	X2B - Pending Payment to Seller	2024-04-05 16:44:04	2024-04-05 16:44:04
+749	ticket-x2b-successful	X2B - Successful	2024-04-05 16:44:04	2024-04-05 16:44:04
+750	lead-sell-form-expired	Expired	2024-04-05 16:44:04	2024-04-05 16:44:04
+751	offer-pending-approve	Pending Approval	2024-04-05 16:44:04	2024-04-05 16:44:04
+752	offer-approved	Offer Approved	2024-04-05 16:44:04	2024-04-05 16:44:04
+753	offer-rejected	Rejected	2024-04-05 16:44:04	2024-04-05 16:44:04
+754	offer-expired	Expired	2024-04-05 16:44:04	2024-04-05 16:44:04
+755	offer-closed	Closed	2024-04-05 16:44:04	2024-04-05 16:44:04
+756	ticket-listing-added	Listing Added	2024-04-05 16:44:04	2024-04-05 16:44:04
+757	ticket-pending-verification	Pending Verification	2024-04-05 16:44:04	2024-04-05 16:44:04
+758	ticket-auction-rejected	Auction Rejected	2024-04-05 16:44:04	2024-04-05 16:44:04
+759	ticket-buy-pending-car-in	Buy - Pending Car In	2024-04-05 16:44:04	2024-04-05 16:44:04
+760	ticket-buy-successful	Buy - Successful	2024-04-05 16:44:04	2024-04-05 16:44:04
+761	ticket-x2b-pending-car-in	X2B - Pending Car In	2024-04-05 16:44:04	2024-04-05 16:44:04
+762	ticket-converted-to-buy-in	Converted to Buy In	2024-04-05 16:44:05	2024-04-05 16:44:05
+763	ticket-converted-to-x2b	Converted to X2B	2024-04-05 16:44:05	2024-04-05 16:44:05
+764	ticket-car-in	Car In	2024-04-05 16:44:05	2024-04-05 16:44:05
+765	ticket-pre-delivery-inspection-passed	Pre-Delivery Inspection Passed	2024-04-05 16:44:05	2024-04-05 16:44:05
+766	ticket-pending-customer-payment	Pending Customer Payment	2024-04-05 16:44:05	2024-04-05 16:44:05
+767	ticket-pending-ownership-transfer	Pending Ownership Transfer	2024-04-05 16:44:05	2024-04-05 16:44:05
+768	ticket-successful	Successful	2024-04-05 16:44:05	2024-04-05 16:44:05
+769	ticket-customer-bought	Customer Bought	2024-06-10 16:51:41	2024-06-10 16:51:41
+770	ticket-appointment-started	Appointment Started	2024-06-10 16:51:42	2024-06-10 16:51:42
+771	ticket-test-drive-started	Test Drive Started	2024-06-10 16:51:42	2024-06-10 16:51:42
+772	ticket-deliveried	Delivered	2024-06-10 16:51:42	2024-06-10 16:51:42
+773	online-payment-pending	Pending	2024-07-29 14:13:03	2024-07-29 14:13:03
+774	online-payment-pending-approval	Pending Approval	2024-07-29 14:13:03	2024-07-29 14:13:03
+775	online-payment-paid	Paid	2024-07-29 14:13:03	2024-07-29 14:13:03
+776	online-payment-failed	Failed	2024-07-29 14:13:03	2024-07-29 14:13:03
+777	online-payment-expired	Expired	2024-07-29 14:13:03	2024-07-29 14:13:03
+778	online-payment-pending-confirmed	Pending Confirmed	2024-07-29 14:13:03	2024-07-29 14:13:03
+779	transaction-refund-initiatied	Refund Initiatied	2024-08-05 14:17:51	2024-08-05 14:17:51
+780	transaction-refund-approved	Refund Approved	2024-08-05 14:17:51	2024-08-05 14:17:51
+781	transaction-refund-acknowledged	Refund Acknowledged	2024-08-05 14:17:51	2024-08-05 14:17:51
+782	transaction-refund-signed	Refund Signed	2024-08-05 14:17:51	2024-08-05 14:17:51
+783	transaction-refund-expired	Refund Expired	2024-08-05 14:17:52	2024-08-05 14:17:52
+784	transaction-refund-processing	Refund Processing	2024-08-05 14:17:52	2024-08-05 14:17:52
+785	transaction-refund-completed	Refund Completed	2024-08-05 14:17:52	2024-08-05 14:17:52
+786	inside-badge-active	Active	2024-08-12 14:23:56	2024-08-12 14:23:56
+787	inside-badge-inactive	Inactive	2024-08-12 14:23:56	2024-08-12 14:23:56
+788	lta-pending	Pending	2024-08-19 14:46:44	2024-08-19 14:46:44
+789	lta-successful	Successful	2024-08-19 14:46:44	2024-08-19 14:46:44
+790	lta-failed	Failed	2024-08-19 14:46:44	2024-08-19 14:46:44
+791	listings-presale	Presale	2024-09-30 14:09:58	2024-09-30 14:09:58
+792	listings-resale	Resale	2024-09-30 14:09:58	2024-09-30 14:09:58
+793	owned-inventories-phase-allocating-listing	Allocating Listing	2024-09-30 14:10:10	2024-09-30 14:10:10
+794	expense-pending-ops-approval	Pending Ops Approval	2024-11-04 14:37:19	2024-11-04 14:37:19
+795	quotation-estimation-accepted	Estimation Accepted	2024-11-04 14:37:21	2024-11-04 14:37:21
+796	quotation-estimation-rejected	Estimation Rejected	2024-11-04 14:37:21	2024-11-04 14:37:21
+797	quotation-to-re-estimate	To Re-estimate	2024-11-04 14:37:21	2024-11-04 14:37:21
+798	quotation-request-activity-offer-price-estimation-accepted	 Estimation Accepted	2024-11-04 14:37:21	2024-11-04 14:37:21
+799	quotation-request-activity-offer-price-estimation-rejected	 Estimation Rejected	2024-11-04 14:37:21	2024-11-04 14:37:21
+800	expense_credit_note_ops_pending	Pending Ops Approval	2024-11-04 14:37:23	2024-11-04 14:37:23
+801	expense_credit_note_finance_pending	Pending Finance Approval	2024-11-04 14:37:23	2024-11-04 14:37:23
+802	expense_credit_note_approved	Credit Note Approved	2024-11-04 14:37:23	2024-11-04 14:37:23
+803	expense_credit_note_rejected	Rejected	2024-11-04 14:37:23	2024-11-04 14:37:23
+804	recondition-worksheets-new	New	2024-12-02 14:08:31	2024-12-02 14:08:31
+805	recondition-worksheets-draft-new	Draft (New)	2024-12-02 14:08:31	2024-12-02 14:08:31
+806	recondition-worksheets-quote	Quote	2024-12-02 14:08:31	2024-12-02 14:08:31
+807	recondition-worksheets-draft-quote	Draft (Quote)	2024-12-02 14:08:31	2024-12-02 14:08:31
+808	recondition-worksheets-pending-approval	Pending Approval	2024-12-02 14:08:31	2024-12-02 14:08:31
+809	recondition-worksheets-requote	ReQuote	2024-12-02 14:08:31	2024-12-02 14:08:31
+810	recondition-worksheets-draft-requote	Draft (ReQuote)	2024-12-02 14:08:31	2024-12-02 14:08:31
+811	recondition-worksheets-approved	Approved	2024-12-02 14:08:31	2024-12-02 14:08:31
+812	recondition-worksheets-invoiced	Invoiced	2024-12-02 14:08:31	2024-12-02 14:08:31
+813	recondition-worksheet-details-excluded	Excluded	2024-12-02 14:08:31	2024-12-02 14:08:31
+814	recondition-worksheet-details-requote	ReQuote	2024-12-02 14:08:31	2024-12-02 14:08:31
+815	recondition-worksheet-details-pending	Pending	2024-12-02 14:08:31	2024-12-02 14:08:31
+816	recondition-worksheet-details-approved	Approved	2024-12-02 14:08:31	2024-12-02 14:08:31
+817	recondition-worksheet-detail-parts-excluded	Excluded	2024-12-02 14:08:31	2024-12-02 14:08:31
+818	recondition-worksheet-detail-parts-requote	ReQuote	2024-12-02 14:08:31	2024-12-02 14:08:31
+819	recondition-worksheet-detail-parts-pending	Pending	2024-12-02 14:08:31	2024-12-02 14:08:31
+820	recondition-worksheet-detail-parts-approved	Approved	2024-12-02 14:08:31	2024-12-02 14:08:31
+821	ticket-pending-estimation	Pending Estimation	2024-12-16 14:17:14	2024-12-16 14:17:14
+822	ticket-estimation-sent	Estimation Sent	2024-12-16 14:17:14	2024-12-16 14:17:14
+823	ticket-buy-cancelled	Buy - Cancelled	2024-12-16 14:17:14	2024-12-16 14:17:14
+824	ticket-x2b-cancelled	X2B - Cancelled	2024-12-16 14:17:14	2024-12-16 14:17:14
+825	ticket-buy-pending-ready-to-collect	Buy - Pending Ready to Collect	2024-12-16 14:17:14	2024-12-16 14:17:14
+826	ticket-estimation-received	Estimation Received	2024-12-16 14:17:14	2024-12-16 14:17:14
+827	ticket-pending-re-estimate	Pending Re-estimate	2024-12-16 14:17:14	2024-12-16 14:17:14
+828	ticket-re-estimate-received	Re-estimate Received	2024-12-16 14:17:14	2024-12-16 14:17:14
+829	ticket-pending-re-quote	Pending Re-Quote	2024-12-16 14:17:14	2024-12-16 14:17:14
+830	ticket-auction-started	Auction Started	2024-12-16 14:17:14	2024-12-16 14:17:14
+831	transaction-refund-carro	Carro Refund	2024-12-30 14:32:42	2024-12-30 14:32:42
+832	transaction-hand-over-form-not-started	Not Started	2025-01-06 14:16:49	2025-01-06 14:16:49
+833	transaction-hand-over-form-in-progress	In Progress	2025-01-06 14:16:49	2025-01-06 14:16:49
+834	transaction-hand-over-form-completed	Completed	2025-01-06 14:16:49	2025-01-06 14:16:49
+835	insurance-policy-active	Active	2025-01-06 14:16:49	2025-01-06 14:16:49
+836	insurance-policy-ended	Ended	2025-01-06 14:16:49	2025-01-06 14:16:49
+837	transaction-payment-requested	Requested	2025-05-19 15:07:47	2025-05-19 15:07:47
+838	transaction-payment-rejected	Rejected	2025-05-19 15:07:47	2025-05-19 15:07:47
+839	transaction-payment-third-party-requested-pending	Pending	2025-05-19 15:07:47	2025-05-19 15:07:47
+840	transaction-payment-third-party-requested-rejected	Rejected	2025-05-19 15:07:47	2025-05-19 15:07:47
+841	transaction-payment-third-party-requested-accepted	Accepted	2025-05-19 15:07:47	2025-05-19 15:07:47
+842	transaction-payment-third-party-requested-settled	Settled	2025-05-19 15:07:47	2025-05-19 15:07:47
+843	offer-pending-deposit	Pending Deposit	2025-06-23 15:25:08	2025-06-23 15:25:08
+844	offer-accepted	Accepted	2025-06-23 15:25:08	2025-06-23 15:25:08
+845	payment-tasks-new	New	2025-08-18 14:29:54	2025-08-18 14:29:54
+846	payment-tasks-in-review	In Review	2025-08-18 14:29:54	2025-08-18 14:29:54
+847	payment-tasks-processing	Processing	2025-08-18 14:29:54	2025-08-18 14:29:54
+848	payment-tasks-completed	Completed	2025-08-18 14:29:54	2025-08-18 14:29:54
+849	payment-tasks-rejected	Rejected	2025-08-18 14:29:54	2025-09-29 14:38:18
+850	payment-tasks-on-hold	On Hold	2025-08-18 14:29:54	2025-08-18 14:29:54
+851	payment-tasks-retracted	Retracted	2025-09-29 14:38:18	2025-09-29 14:38:18
+852	transaction-handover-form-field-verifications-force-verified	Force Verified	2025-10-21 14:17:38	2025-10-21 14:17:38
+853	payment-task-pre-approvals-pending	Pending	2025-10-21 14:17:38	2025-10-21 14:17:38
+854	payment-task-pre-approvals-approved	Approved	2025-10-21 14:17:38	2025-10-21 14:17:38
+855	payment-task-pre-approvals-rejected	Rejected	2025-10-21 14:17:38	2025-10-21 14:17:38
+856	payment-task-pre-approval-approver-pending	Pending	2025-10-21 14:17:38	2025-10-21 14:17:38
+857	payment-task-pre-approval-approver-approved	Approved	2025-10-21 14:17:38	2025-10-21 14:17:38
+858	payment-task-pre-approval-approver-rejected	Rejected	2025-10-21 14:17:38	2025-10-21 14:17:38
+859	ticket-follow-up-active	Active	2025-11-24 14:15:58	2025-11-24 14:15:58
+860	ticket-follow-up-cancelled	Cancelled	2025-11-24 14:15:58	2025-11-24 14:15:58
+861	ticket-follow-up-finished	Finished	2025-11-24 14:15:59	2025-11-24 14:15:59
+862	owned-inventories-converted-to-non-trade-asset	Converted to Non-trade Asset	2025-12-04 07:55:46	2025-12-08 14:22:37
+863	bank-accounts-pending	Pending	2025-12-08 14:22:37	2025-12-08 14:22:37
+864	bank-accounts-verified	Verified	2025-12-08 14:22:37	2025-12-08 14:22:37
+865	bank-accounts-force-verified	Force Verified	2025-12-08 14:22:37	2025-12-08 14:22:37
+866	bank-accounts-not-verified	Not Verified	2025-12-08 14:22:37	2025-12-08 14:22:37
+867	bot-send-first-message	Bot Sent First Message	2026-03-09 14:32:07	2026-03-09 14:32:07
+868	quotation-request-counter-offered	Counter Offer Request	2026-05-25 14:14:56	2026-06-08 14:11:04
+869	quotation-counter-offered	Counter Offer Request	2026-05-25 14:14:56	2026-06-08 14:11:05
+870	quotation-request-activity-counter-offered	Counter Offer Request	2026-05-25 14:14:56	2026-06-08 14:11:05
+871	quotation-request-assignment-succeeded	Succeeded	2026-05-25 14:14:59	2026-05-25 14:14:59
+872	quotation-request-assignment-failed	Failed	2026-05-25 14:14:59	2026-05-25 14:14:59
+873	quotation-offer-price-submitted	Offer Price Submitted	2026-05-25 14:14:59	2026-05-25 14:14:59
+874	quotation-suggest-to-bidding	Suggest to Bidding	2026-05-25 14:14:59	2026-05-25 14:14:59
+875	quotation-request-offer-price-submitted	Offer Price Submitted	2026-05-25 14:14:59	2026-05-25 14:14:59
+876	quotation-request-suggest-to-bidding	Suggest to Bidding	2026-05-25 14:14:59	2026-05-25 14:14:59
+877	quotation-request-activity-suggest-to-bidding	Suggest to Bidding	2026-05-25 14:14:59	2026-05-25 14:14:59
+878	lead-sell-form-pending-publish-to-bidding	Pending Publish to Bidding	2026-05-25 14:14:59	2026-05-25 14:14:59
+879	lead-quotation-suggest-to-bidding	Suggest to Bidding	2026-05-25 14:14:59	2026-05-25 14:14:59

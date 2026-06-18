@@ -32,6 +32,7 @@ interface Download {
 interface SyncSource {
     id: number;
     display_name: string;
+    group: string;
     connection: string;
     source_table: string;
     target_table: string;
@@ -117,12 +118,18 @@ const runImport = (download: Download) => {
             :value="sources"
             data-key="id"
             striped-rows
+            row-group-mode="subheader"
+            group-rows-by="group"
             class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
         >
             <template #empty>
                 <div class="p-6 text-center text-sm text-muted-foreground">
                     No sync sources configured.
                 </div>
+            </template>
+
+            <template #groupheader="{ data }">
+                <span class="font-semibold">{{ data.group }}</span>
             </template>
 
             <Column expander style="width: 3rem" />

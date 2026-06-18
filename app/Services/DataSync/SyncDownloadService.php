@@ -170,19 +170,40 @@ class SyncDownloadService
     /**
      * Build (and ensure the directory for) the output file path.
      *
+     * Honours the source's folder_path / file_name config, falling back to the
+     * default output directory and a timestamped name.
+     *
      * @return array{0: string, 1: string} [absolute path, file name]
      */
     protected function resolvePath(SyncSource $source, SyncDownload $download, string $fileType): array
     {
-        $dir = rtrim((string) config('sync.output_path'), '/')."/{$source->target_table}";
+        $dir = $source->folder_path
+            ?: rtrim((string) config('sync.output_path'), '/')."/{$source->target_table}";
+        $dir = rtrim($dir, '/');
 
         if (! is_dir($dir)) {
             mkdir($dir, 0775, true);
         }
 
-        $name = Carbon::now()->format('Ymd_His')."_{$download->id}.{$fileType}";
+        $pattern = $source->file_name ?: '{{timestamp}}_{{id}}';
+        $name = $this->resolveFileName($pattern, $source, $download).".{$fileType}";
 
         return ["{$dir}/{$name}", $name];
+    }
+
+    /**
+     * Expand placeholder tokens in a file-name template.
+     */
+    protected function resolveFileName(string $pattern, SyncSource $source, SyncDownload $download): string
+    {
+        $now = Carbon::now();
+
+        return strtr($pattern, [
+            '{{timestamp}}' => $now->format('Ymd_His'),
+            '{{date}}' => $now->format('Ymd'),
+            '{{table}}' => $source->source_table,
+            '{{id}}' => (string) $download->id,
+        ]);
     }
 
     /**

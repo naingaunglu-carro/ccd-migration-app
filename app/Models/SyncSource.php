@@ -12,11 +12,14 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $name
  * @property string $display_name
+ * @property string $group
  * @property string $connection
  * @property string $source_table
  * @property string $target_table
  * @property array<string, string> $columns
  * @property string $source_key
+ * @property string|null $folder_path
+ * @property string|null $file_name
  * @property Carbon|null $last_synced_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -24,11 +27,14 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'name',
     'display_name',
+    'group',
     'connection',
     'source_table',
     'target_table',
     'columns',
     'source_key',
+    'folder_path',
+    'file_name',
     'last_synced_at',
 ])]
 class SyncSource extends Model

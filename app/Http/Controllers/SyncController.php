@@ -19,11 +19,13 @@ class SyncController extends Controller
     {
         $sources = SyncSource::query()
             ->with(['downloads' => fn ($q) => $q->latest()->limit(10)->with('latestImport')])
+            ->orderBy('group')
             ->orderBy('display_name')
             ->get()
             ->map(fn (SyncSource $source) => [
                 'id' => $source->id,
                 'display_name' => $source->display_name,
+                'group' => $source->group,
                 'connection' => $source->connection,
                 'source_table' => $source->source_table,
                 'target_table' => $source->target_table,

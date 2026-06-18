@@ -19,11 +19,11 @@ return new class extends Migration
             $table->string('connection');
             $table->string('source_table');
             $table->string('target_table');
-            $table->json('columns')->nullable();
             $table->string('source_key')->default('id');
-            $table->string('resolver_class')->nullable();
             $table->string('folder_path')->nullable();
             $table->string('file_name')->nullable();
+            $table->string('resolver_class')->nullable();
+            $table->json('columns')->nullable();
             $table->timestamp('last_synced_at')->nullable();
             $table->timestamps();
             $table->unique('name');

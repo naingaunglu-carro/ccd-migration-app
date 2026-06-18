@@ -17,14 +17,11 @@ return new class extends Migration
             $table->string('name');
             $table->string('display_name');
             $table->string('connection');
-            $table->string('source_table');
-            $table->string('target_table');
-            $table->string('source_key')->default('id');
+            $table->text('query');
+            $table->string('resolver_class')->nullable();
             $table->string('folder_path')->nullable();
             $table->string('file_name')->nullable();
-            $table->string('resolver_class')->nullable();
-            $table->text('query')->nullable();
-            $table->json('columns')->nullable();
+            $table->timestamp('last_downloaded_at')->nullable();
             $table->timestamp('last_synced_at')->nullable();
             $table->timestamps();
             $table->unique('name');

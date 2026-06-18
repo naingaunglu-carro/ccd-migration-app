@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('sync_source_id')->constrained('sync_sources');
             $table->foreignId('sync_download_id')->constrained('sync_downloads');
+            $table->string('resolver_class')->nullable();
             $table->unsignedInteger('rows_read')->default(0);
             $table->unsignedInteger('rows_inserted')->default(0);
             $table->unsignedInteger('rows_updated')->default(0);

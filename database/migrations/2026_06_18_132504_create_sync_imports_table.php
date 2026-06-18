@@ -24,6 +24,8 @@ return new class extends Migration
             $table->text('error_message')->nullable();
             $table->string('status');
             $table->timestamps();
+            $table->index(['id', 'sync_download_id']);
+            $table->index(['sync_source_id', 'status']);
         });
     }
 

@@ -27,6 +27,7 @@ return new class extends Migration
             $table->timestamp('last_synced_at')->nullable();
             $table->timestamps();
             $table->unique('name');
+            $table->index(['group', 'display_name']);
         });
     }
 

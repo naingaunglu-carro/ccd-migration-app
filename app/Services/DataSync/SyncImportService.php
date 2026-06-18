@@ -130,17 +130,28 @@ class SyncImportService
         }
 
         $keys = array_values((array) $uniqueBy);
-        $stampSynced = Schema::hasColumn($table, 'last_synced_at');
         $now = Carbon::now();
+
+        // Query-builder upsert doesn't manage these — stamp the ones the table has.
+        $stamps = array_values(array_filter(
+            ['created_at', 'updated_at', 'last_synced_at'],
+            fn ($column) => Schema::hasColumn($table, $column),
+        ));
 
         $before = DB::table($table)->count();
 
         foreach (array_chunk($rows, 500) as $chunk) {
-            if ($stampSynced) {
-                $chunk = array_map(fn ($row) => $row + ['last_synced_at' => $now], $chunk);
-            }
+            $chunk = array_map(function ($row) use ($stamps, $now) {
+                foreach ($stamps as $column) {
+                    // Don't override a value the resolver already supplied.
+                    $row[$column] ??= $now;
+                }
 
-            $updateColumns = array_values(array_diff(array_keys($chunk[0]), $keys));
+                return $row;
+            }, $chunk);
+
+            // Update everything except the key(s) and created_at (preserved on conflict).
+            $updateColumns = array_values(array_diff(array_keys($chunk[0]), $keys, ['created_at']));
 
             DB::table($table)->upsert($chunk, $keys, $updateColumns);
         }

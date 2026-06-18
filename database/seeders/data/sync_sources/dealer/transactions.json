@@ -7,6 +7,7 @@
         "query": "select id, type, title, status_id, created_at, updated_at from transactions",
         "target_table": "dealer_transactions",
         "resolver_class": "",
+        "queue": "sync-imports",
         "folder_path": "transactions",
         "file_name": "dealer_transactions_{{timestamp}}"
     }

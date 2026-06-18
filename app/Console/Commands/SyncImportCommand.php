@@ -30,9 +30,16 @@ class SyncImportCommand extends Command
             return self::FAILURE;
         }
 
-        if ($this->option('queue')) {
-            ProcessSyncImport::dispatch($download);
-            $this->info("Queued import for download #{$download->id}.");
+        $queue = $download->source->queue;
+
+        if ($queue || $this->option('queue')) {
+            $job = ProcessSyncImport::dispatch($download);
+
+            if ($queue) {
+                $job->onQueue($queue);
+            }
+
+            $this->info("Queued import for download #{$download->id}".($queue ? " on \"{$queue}\"" : '').'.');
 
             return self::SUCCESS;
         }

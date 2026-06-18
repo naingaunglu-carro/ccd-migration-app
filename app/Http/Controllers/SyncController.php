@@ -6,6 +6,7 @@ use App\Jobs\ProcessSyncImport;
 use App\Models\SyncDownload;
 use App\Models\SyncSource;
 use App\Services\DataSync\SyncDownloadService;
+use App\Services\DataSync\SyncImportService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -83,21 +84,46 @@ class SyncController extends Controller
     }
 
     /**
-     * Part 2 — queue an import (process) for a downloaded file.
+     * Part 2 — process a downloaded file.
      *
-     * Imports can be large, so they run on the queue rather than blocking the
-     * request. The result shows up on the download's latest import once done.
+     * If the source defines a queue, the import is dispatched onto it (async);
+     * otherwise it runs inline.
      */
-    public function import(SyncDownload $download): RedirectResponse
+    public function import(SyncDownload $download, SyncImportService $service): RedirectResponse
     {
-        ProcessSyncImport::dispatch($download);
+        $source = $download->source;
 
-        Inertia::flash('toast', [
-            'type' => 'info',
-            'message' => __('Import queued for :name.', [
-                'name' => $download->source->display_name,
-            ]),
-        ]);
+        if ($source->queue) {
+            ProcessSyncImport::dispatch($download)->onQueue($source->queue);
+
+            Inertia::flash('toast', [
+                'type' => 'info',
+                'message' => __('Import queued for :name on “:queue”.', [
+                    'name' => $source->display_name,
+                    'queue' => $source->queue,
+                ]),
+            ]);
+
+            return to_route('sync.index');
+        }
+
+        try {
+            $import = $service->import($download);
+
+            Inertia::flash('toast', [
+                'type' => 'success',
+                'message' => __('Imported — :inserted new, :updated updated, :skipped skipped.', [
+                    'inserted' => $import->rows_inserted,
+                    'updated' => $import->rows_updated,
+                    'skipped' => $import->rows_skipped,
+                ]),
+            ]);
+        } catch (\Throwable $e) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => __('Import failed: :error', ['error' => $e->getMessage()]),
+            ]);
+        }
 
         return to_route('sync.index');
     }

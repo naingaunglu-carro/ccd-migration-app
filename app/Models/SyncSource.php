@@ -20,6 +20,7 @@ use InvalidArgumentException;
  * @property string $query
  * @property string $target_table
  * @property string|null $resolver_class
+ * @property string|null $queue
  * @property string|null $folder_path
  * @property string|null $file_name
  * @property Carbon|null $last_downloaded_at
@@ -35,6 +36,7 @@ use InvalidArgumentException;
     'query',
     'target_table',
     'resolver_class',
+    'queue',
     'folder_path',
     'file_name',
     'last_downloaded_at',

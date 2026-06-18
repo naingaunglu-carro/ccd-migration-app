@@ -20,6 +20,7 @@ return new class extends Migration
             $table->text('query');
             $table->string('target_table');
             $table->string('resolver_class')->nullable();
+            $table->string('queue')->nullable();
             $table->string('folder_path')->nullable();
             $table->string('file_name')->nullable();
             $table->timestamp('last_downloaded_at')->nullable();

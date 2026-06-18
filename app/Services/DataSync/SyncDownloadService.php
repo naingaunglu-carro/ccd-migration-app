@@ -33,15 +33,15 @@ class SyncDownloadService
         try {
             [$absolute, $name] = $this->resolvePath($source, $download, $fileType);
 
-            $this->run($conn, $select, $absolute);
+            $metrics = $this->run($conn, $select, $absolute);
 
             $download->forceFill([
                 'status' => SyncStatus::COMPLETED,
                 'file_path' => $absolute,
                 'file_name' => $name,
-                'file_size' => filesize($absolute) ?: null,
-                'checksum' => hash_file('sha256', $absolute) ?: null,
-                'row_count' => $this->countDataRows($absolute),
+                'file_size' => $metrics['size'] ?: null,
+                'checksum' => $metrics['checksum'],
+                'row_count' => $metrics['row_count'],
                 'finished_at' => Carbon::now(),
             ])->save();
 
@@ -62,9 +62,13 @@ class SyncDownloadService
     /**
      * Run the driver-specific export, streaming stdout into the target file.
      *
+     * Size, row count, and checksum are computed in this single streaming pass
+     * so huge exports are never re-read from disk afterwards.
+     *
      * @param  array<string, mixed>  $conn
+     * @return array{size: int, row_count: int, checksum: string|null}
      */
-    protected function run(array $conn, string $select, string $path): void
+    protected function run(array $conn, string $select, string $path): array
     {
         $process = new Process(
             $this->command($select, $conn),
@@ -78,10 +82,17 @@ class SyncDownloadService
             throw new RuntimeException("Unable to open output file: {$path}");
         }
 
+        $hash = hash_init('sha256');
+        $bytes = 0;
+        $lines = 0;
+
         try {
-            $process->run(function (string $type, string $buffer) use ($handle) {
+            $process->run(function (string $type, string $buffer) use ($handle, $hash, &$bytes, &$lines) {
                 if ($type === Process::OUT) {
                     fwrite($handle, $buffer);
+                    hash_update($hash, $buffer);
+                    $bytes += strlen($buffer);
+                    $lines += substr_count($buffer, "\n");
                 }
             });
         } finally {
@@ -93,6 +104,12 @@ class SyncDownloadService
                 "{$conn['driver']} export failed: ".trim($process->getErrorOutput() ?: $process->getOutput())
             );
         }
+
+        return [
+            'size' => $bytes,
+            'row_count' => max(0, $lines - 1), // total lines minus the header
+            'checksum' => $bytes > 0 ? hash_final($hash) : null,
+        ];
     }
 
     /**
@@ -240,29 +257,5 @@ class SyncDownloadService
             '{{date}}' => $now->format('Ymd'),
             '{{id}}' => (string) $download->id,
         ]);
-    }
-
-    /**
-     * Count data rows in the export (total lines minus the header).
-     */
-    protected function countDataRows(string $path): int
-    {
-        $handle = fopen($path, 'rb');
-
-        if ($handle === false) {
-            return 0;
-        }
-
-        $lines = 0;
-
-        try {
-            while (fgets($handle) !== false) {
-                $lines++;
-            }
-        } finally {
-            fclose($handle);
-        }
-
-        return max(0, $lines - 1);
     }
 }

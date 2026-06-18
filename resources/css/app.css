@@ -2,6 +2,9 @@
 
 @import 'tw-animate-css';
 
+/* Order PrimeVue's styled-mode layer below Tailwind utilities so utilities win. */
+@layer theme, base, primevue, components, utilities;
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 

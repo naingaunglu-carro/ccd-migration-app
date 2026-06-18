@@ -1,4 +1,7 @@
 import { createInertiaApp } from '@inertiajs/vue3';
+import Aura from '@primeuix/themes/aura';
+import PrimeVue from 'primevue/config';
+import 'primeicons/primeicons.css';
 import { initializeTheme } from '@/composables/useAppearance';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
@@ -9,6 +12,22 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
+    withApp: (app) => {
+        app.use(PrimeVue, {
+            theme: {
+                preset: Aura,
+                options: {
+                    // Match the app's class-based dark mode (.dark on <html>)...
+                    darkModeSelector: '.dark',
+                    // Keep PrimeVue styles below Tailwind utilities in the cascade...
+                    cssLayer: {
+                        name: 'primevue',
+                        order: 'theme, base, primevue',
+                    },
+                },
+            },
+        });
+    },
     layout: (name) => {
         switch (true) {
             case name === 'Welcome':

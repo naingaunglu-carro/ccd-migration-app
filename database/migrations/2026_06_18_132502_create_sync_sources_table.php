@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('sync_sources', function (Blueprint $table) {
             $table->id();
-            $table->string('name');           
-            $table->string('connection');              
-            $table->string('source_table');             
-            $table->string('target_table');             
-            $table->json('columns');                     
+            $table->string('name');
+            $table->string('display_name');
+            $table->string('connection');
+            $table->string('source_table');
+            $table->string('target_table');
+            $table->json('columns');
             $table->string('source_key')->default('id');
             $table->timestamp('last_synced_at')->nullable();
             $table->timestamps();

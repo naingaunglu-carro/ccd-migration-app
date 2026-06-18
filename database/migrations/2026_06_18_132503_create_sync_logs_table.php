@@ -13,23 +13,19 @@ return new class extends Migration
     {
         Schema::create('sync_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('sync_source_id')->nullable()
-                ->constrained('sync_sources')->nullOnDelete();
-            $table->string('source_table');             // e.g. "statuses"
-            $table->string('target_table');             // e.g. "raw_statuses"
-            $table->string('status')->default('running'); // running | completed | failed
+            $table->foreignId('sync_source_id')->constrained('sync_sources');
+            $table->string('source_table');
+            $table->string('target_table');
+            $table->string('file_path')->nullable();
             $table->unsignedInteger('rows_read')->default(0);
             $table->unsignedInteger('rows_inserted')->default(0);
             $table->unsignedInteger('rows_updated')->default(0);
             $table->unsignedInteger('rows_failed')->default(0);
-            $table->string('file_path')->nullable();    // the .tsv that was loaded
             $table->text('error_message')->nullable();
-            $table->string('triggered_by')->nullable(); // username/email who ran the sync
             $table->timestamp('started_at')->nullable();
             $table->timestamp('finished_at')->nullable();
+            $table->string('status')->default('pending');
             $table->timestamps();
-
-            $table->index(['source_table', 'status']);
         });
     }
 

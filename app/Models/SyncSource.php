@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Contracts\Sync\ImportResolver;
+use App\Services\DataSync\Resolvers\DefaultImportResolver;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
+use InvalidArgumentException;
 
 /**
  * @property int $id
@@ -20,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property string $source_key
  * @property string|null $folder_path
  * @property string|null $file_name
+ * @property string|null $resolver_class
  * @property Carbon|null $last_synced_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -35,6 +39,7 @@ use Illuminate\Support\Carbon;
     'source_key',
     'folder_path',
     'file_name',
+    'resolver_class',
     'last_synced_at',
 ])]
 class SyncSource extends Model
@@ -58,6 +63,26 @@ class SyncSource extends Model
     public function targetKey(): string
     {
         return $this->columns[$this->source_key] ?? 'source_id';
+    }
+
+    /**
+     * Resolve the import resolver for this source (custom or default).
+     */
+    public function resolver(): ImportResolver
+    {
+        $class = $this->resolver_class ?: DefaultImportResolver::class;
+
+        if (! class_exists($class)) {
+            throw new InvalidArgumentException("Import resolver [{$class}] does not exist.");
+        }
+
+        $resolver = app($class);
+
+        if (! $resolver instanceof ImportResolver) {
+            throw new InvalidArgumentException("[{$class}] must implement ".ImportResolver::class.'.');
+        }
+
+        return $resolver;
     }
 
     /**

@@ -78,6 +78,7 @@ class SyncImportService
         $skipped = 0;
         $headers = null;
         $key = $source->targetKey();
+        $resolver = $source->resolver();
 
         try {
             while (($values = $this->readRecord($handle, $isCsv)) !== null) {
@@ -88,19 +89,24 @@ class SyncImportService
                 }
 
                 $row = [];
+                $sourceRow = [];
 
                 foreach ($headers as $i => $sourceColumn) {
+                    $value = $this->normalize($values[$i] ?? null, $isCsv);
+                    $sourceRow[$sourceColumn] = $value;
+
                     $target = $source->columns[$sourceColumn] ?? null;
 
-                    if ($target === null) {
-                        continue; // column not mapped to the target table
+                    if ($target !== null) {
+                        $row[$target] = $value;
                     }
-
-                    $row[$target] = $this->normalize($values[$i] ?? null, $isCsv);
                 }
 
-                // A row with no upsert key can't be loaded — count it as skipped.
-                if (! isset($row[$key]) || $row[$key] === null || $row[$key] === '') {
+                // Hand the row to the source's resolver for custom manipulation.
+                $row = $resolver->resolve($row, $sourceRow, $source);
+
+                // A null row (resolver-dropped) or one with no upsert key is skipped.
+                if ($row === null || ! isset($row[$key]) || $row[$key] === null || $row[$key] === '') {
                     $skipped++;
 
                     continue;

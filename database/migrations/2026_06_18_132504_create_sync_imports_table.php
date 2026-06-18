@@ -11,23 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Part 2 — PROCESS: one row per import run; consumes a downloaded file.
         Schema::create('sync_imports', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('sync_download_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('sync_source_id')->constrained()->cascadeOnDelete();
-            $table->string('status')->default('pending'); // pending|running|completed|failed
+            $table->foreignId('sync_source_id')->constrained('sync_sources');
+            $table->foreignId('sync_download_id')->constrained('sync_downloads');
             $table->unsignedInteger('rows_read')->default(0);
             $table->unsignedInteger('rows_inserted')->default(0);
             $table->unsignedInteger('rows_updated')->default(0);
-            $table->unsignedInteger('rows_skipped')->default(0); // bad/unmapped rows
-            $table->text('error_message')->nullable();
+            $table->unsignedInteger('rows_skipped')->default(0);
             $table->timestamp('started_at')->nullable();
             $table->timestamp('finished_at')->nullable();
+            $table->text('error_message')->nullable();
+            $table->string('status');
             $table->timestamps();
-
-            $table->index(['sync_source_id', 'status']);
-            $table->index('sync_download_id');
         });
     }
 

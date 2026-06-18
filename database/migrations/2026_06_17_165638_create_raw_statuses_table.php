@@ -23,7 +23,7 @@ return new class extends Migration
 
             $table->timestamp('last_synced_at')->nullable();
             $table->timestamps();
-            $table->index('source_id');
+            $table->unique('source_id');
         });
     }
 

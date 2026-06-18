@@ -101,8 +101,7 @@ class SyncDownloadService
         $driver = $conn['driver'];
         $binary = config("sync.binaries.{$driver}", $driver);
         $flags = (array) config("sync.drivers.{$driver}.flags", []);
-        $columns = implode(', ', array_keys($source->columns));
-        $select = "select {$columns} from {$source->source_table}";
+        $select = $this->select($source);
 
         return match ($driver) {
             'mysql' => array_merge(
@@ -128,6 +127,37 @@ class SyncDownloadService
             ),
             default => throw new RuntimeException("Unsupported sync driver: {$driver}"),
         };
+    }
+
+    /**
+     * Resolve the SELECT statement: a source's custom query (override) or the
+     * generated "select {columns} from {source_table}".
+     */
+    protected function select(SyncSource $source): string
+    {
+        if (! empty($source->query)) {
+            // Strip a trailing ";" — the pgsql path wraps this in \copy (...).
+            $query = rtrim(trim($source->query), ';');
+
+            return $this->resolvePlaceholders($query, $source);
+        }
+
+        $columns = implode(', ', array_keys($source->columns));
+
+        return "select {$columns} from {$source->source_table}";
+    }
+
+    /**
+     * Expand query placeholders (e.g. {{last_synced_at}} for incremental pulls).
+     */
+    protected function resolvePlaceholders(string $query, SyncSource $source): string
+    {
+        $lastSynced = $source->last_synced_at?->toDateTimeString() ?? '1970-01-01 00:00:00';
+
+        return strtr($query, [
+            '{{last_synced_at}}' => $lastSynced,
+            '{{table}}' => $source->source_table,
+        ]);
     }
 
     /**

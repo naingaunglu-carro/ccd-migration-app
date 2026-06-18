@@ -19,6 +19,7 @@ use InvalidArgumentException;
  * @property string $connection
  * @property string $source_table
  * @property string $target_table
+ * @property string|null $query
  * @property array<string, string> $columns
  * @property string $source_key
  * @property string|null $folder_path
@@ -35,6 +36,7 @@ use InvalidArgumentException;
     'connection',
     'source_table',
     'target_table',
+    'query',
     'columns',
     'source_key',
     'folder_path',

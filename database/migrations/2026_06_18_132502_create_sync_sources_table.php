@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('folder_path')->nullable();
             $table->string('file_name')->nullable();
             $table->string('resolver_class')->nullable();
+            $table->text('query')->nullable();
             $table->json('columns')->nullable();
             $table->timestamp('last_synced_at')->nullable();
             $table->timestamps();

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\ProcessSyncImport;
 use App\Models\SyncDownload;
 use App\Services\DataSync\SyncImportService;
 use Illuminate\Console\Command;
@@ -11,7 +12,8 @@ class SyncImportCommand extends Command
     /**
      * @var string
      */
-    protected $signature = 'sync:import {download : The sync_downloads id to process}';
+    protected $signature = 'sync:import {download : The sync_downloads id to process}
+        {--queue : Dispatch the import to the queue instead of running inline}';
 
     /**
      * @var string
@@ -26,6 +28,13 @@ class SyncImportCommand extends Command
             $this->error("Unknown download id: {$this->argument('download')}");
 
             return self::FAILURE;
+        }
+
+        if ($this->option('queue')) {
+            ProcessSyncImport::dispatch($download);
+            $this->info("Queued import for download #{$download->id}.");
+
+            return self::SUCCESS;
         }
 
         $this->info("Importing download #{$download->id} for {$download->source->display_name}...");

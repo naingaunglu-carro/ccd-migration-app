@@ -5,7 +5,7 @@
         "display_name": "Dealer Statuses",
         "connection": "dealer",
         "query": "select id, name, display_name, created_at, updated_at from statuses",
-        "resolver_class": "App\\Services\\DataSync\\Resolvers\\DealerStatusResolver",
+        "resolver_class": "",
         "folder_path": "references",
         "file_name": "dealer_statuses_{{timestamp}}"
     }

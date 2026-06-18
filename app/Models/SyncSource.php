@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Contracts\Sync\ImportResolver;
+use App\Services\DataSync\Resolvers\DefaultResolver;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -55,15 +56,15 @@ class SyncSource extends Model
     /**
      * Resolve the import resolver for this source.
      *
-     * The resolver owns the target table, upsert key, and column mapping, so a
-     * source must declare a resolver_class before it can be imported.
+     * The resolver owns the target table, upsert key, and column mapping. When
+     * no resolver_class is set, a convention-based DefaultResolver is used.
      */
     public function resolver(): ImportResolver
     {
         $class = $this->resolver_class;
 
         if (empty($class)) {
-            throw new InvalidArgumentException("Source [{$this->name}] has no resolver_class; an import resolver is required.");
+            return new DefaultResolver($this);
         }
 
         if (! class_exists($class)) {

@@ -21,6 +21,8 @@ use InvalidArgumentException;
  * @property string $target_table
  * @property string|null $resolver_class
  * @property string|null $queue
+ * @property int|null $chunk_size
+ * @property string|null $key_column
  * @property string|null $folder_path
  * @property string|null $file_name
  * @property Carbon|null $last_downloaded_at
@@ -37,6 +39,8 @@ use InvalidArgumentException;
     'target_table',
     'resolver_class',
     'queue',
+    'chunk_size',
+    'key_column',
     'folder_path',
     'file_name',
     'last_downloaded_at',
@@ -52,6 +56,7 @@ class SyncSource extends Model
     protected function casts(): array
     {
         return [
+            'chunk_size' => 'integer',
             'last_downloaded_at' => 'datetime',
             'last_synced_at' => 'datetime',
         ];

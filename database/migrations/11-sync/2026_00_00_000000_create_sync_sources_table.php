@@ -21,6 +21,8 @@ return new class extends Migration
             $table->string('target_table');
             $table->string('resolver_class')->nullable();
             $table->string('queue')->nullable();
+            $table->unsignedInteger('chunk_size')->nullable(); // keyset-paginate the export when set
+            $table->string('key_column')->nullable(); // keyset cursor column; defaults to "id"
             $table->string('folder_path')->nullable();
             $table->string('file_name')->nullable();
             $table->timestamp('last_downloaded_at')->nullable();

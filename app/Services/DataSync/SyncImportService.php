@@ -15,6 +15,11 @@ use RuntimeException;
 class SyncImportService
 {
     /**
+     * Rows upserted per batch while streaming an import.
+     */
+    private const BATCH_SIZE = 500;
+
+    /**
      * Part 2 — PROCESS: parse a downloaded file and upsert it via the resolver.
      */
     public function import(SyncDownload $download): SyncImport
@@ -39,8 +44,7 @@ class SyncImportService
         ]);
 
         try {
-            $parsed = $this->parse($download, $source, $resolver);
-            $stats = $this->load($source->target_table, $resolver->uniqueBy(), $parsed['rows']);
+            $stats = $this->process($download, $source, $resolver);
 
             $source->forceFill(['last_synced_at' => Carbon::now()])->save();
 
@@ -49,7 +53,7 @@ class SyncImportService
                 'rows_read' => $stats['read'],
                 'rows_inserted' => $stats['inserted'],
                 'rows_updated' => $stats['updated'],
-                'rows_skipped' => $parsed['skipped'],
+                'rows_skipped' => $stats['skipped'],
                 'finished_at' => Carbon::now(),
             ])->save();
         } catch (\Throwable $e) {
@@ -66,23 +70,34 @@ class SyncImportService
     }
 
     /**
-     * Parse a download file, mapping each row to a target row via the resolver.
+     * Stream the download file, mapping + upserting in batches so memory stays
+     * bounded regardless of row count (handles 100M+ row files).
      *
-     * @return array{rows: list<array<string, mixed>>, skipped: int}
+     * @return array{read: int, inserted: int, updated: int, skipped: int}
      */
-    public function parse(SyncDownload $download, SyncSource $source, ImportResolver $resolver): array
+    public function process(SyncDownload $download, SyncSource $source, ImportResolver $resolver): array
     {
         $isCsv = $download->file_type === 'csv';
+        $table = $source->target_table;
+        $keys = array_values((array) $resolver->uniqueBy());
+
+        // Query-builder upsert doesn't manage these — stamp the ones the table has.
+        $stamps = array_values(array_filter(
+            ['created_at', 'updated_at', 'last_synced_at'],
+            fn ($column) => Schema::hasColumn($table, $column),
+        ));
+
         $handle = fopen($download->file_path, 'rb');
 
         if ($handle === false) {
             throw new RuntimeException("Unable to read file: {$download->file_path}");
         }
 
-        $rows = [];
-        $skipped = 0;
+        $before = DB::table($table)->count();
         $headers = null;
-        $keys = (array) $resolver->uniqueBy();
+        $read = 0;
+        $skipped = 0;
+        $batch = [];
 
         try {
             while (($values = $this->readRecord($handle, $isCsv)) !== null) {
@@ -100,66 +115,56 @@ class SyncImportService
 
                 $row = $resolver->map($sourceRow, $source);
 
-                // Resolver-dropped, or missing any part of the upsert key → skip.
                 if ($row === null || ! $this->hasKeys($row, $keys)) {
                     $skipped++;
 
                     continue;
                 }
 
-                $rows[] = $row;
+                $batch[] = $row;
+                $read++;
+
+                if (count($batch) >= self::BATCH_SIZE) {
+                    $this->flush($table, $keys, $stamps, $batch);
+                    $batch = [];
+                }
+            }
+
+            if ($batch !== []) {
+                $this->flush($table, $keys, $stamps, $batch);
             }
         } finally {
             fclose($handle);
         }
 
-        return ['rows' => $rows, 'skipped' => $skipped];
+        $inserted = max(0, DB::table($table)->count() - $before);
+
+        return ['read' => $read, 'inserted' => $inserted, 'updated' => max(0, $read - $inserted), 'skipped' => $skipped];
     }
 
     /**
-     * Upsert mapped rows into the target table, stamping last_synced_at when present.
+     * Upsert one batch, stamping timestamp columns (created_at is insert-only).
      *
-     * @param  string|list<string>  $uniqueBy
-     * @param  list<array<string, mixed>>  $rows
-     * @return array{read: int, inserted: int, updated: int}
+     * @param  list<string>  $keys
+     * @param  list<string>  $stamps
+     * @param  list<array<string, mixed>>  $batch
      */
-    public function load(string $table, string|array $uniqueBy, array $rows): array
+    protected function flush(string $table, array $keys, array $stamps, array $batch): void
     {
-        if ($rows === []) {
-            return ['read' => 0, 'inserted' => 0, 'updated' => 0];
-        }
-
-        $keys = array_values((array) $uniqueBy);
         $now = Carbon::now();
 
-        // Query-builder upsert doesn't manage these — stamp the ones the table has.
-        $stamps = array_values(array_filter(
-            ['created_at', 'updated_at', 'last_synced_at'],
-            fn ($column) => Schema::hasColumn($table, $column),
-        ));
-
-        $before = DB::table($table)->count();
-
-        foreach (array_chunk($rows, 500) as $chunk) {
-            $chunk = array_map(function ($row) use ($stamps, $now) {
-                foreach ($stamps as $column) {
-                    // Don't override a value the resolver already supplied.
-                    $row[$column] ??= $now;
-                }
-
-                return $row;
-            }, $chunk);
-
-            // Update everything except the key(s) and created_at (preserved on conflict).
-            $updateColumns = array_values(array_diff(array_keys($chunk[0]), $keys, ['created_at']));
-
-            DB::table($table)->upsert($chunk, $keys, $updateColumns);
+        foreach ($batch as &$row) {
+            foreach ($stamps as $column) {
+                // Don't override a value the resolver already supplied.
+                $row[$column] ??= $now;
+            }
         }
+        unset($row);
 
-        $read = count($rows);
-        $inserted = max(0, DB::table($table)->count() - $before);
+        // Update everything except the key(s) and created_at (preserved on conflict).
+        $updateColumns = array_values(array_diff(array_keys($batch[0]), $keys, ['created_at']));
 
-        return ['read' => $read, 'inserted' => $inserted, 'updated' => max(0, $read - $inserted)];
+        DB::table($table)->upsert($batch, $keys, $updateColumns);
     }
 
     /**
@@ -217,11 +222,13 @@ class SyncImportService
             return null;
         }
 
-        // mysql --batch emits \N for NULL; pg CSV emits an empty field for NULL.
+        // pg CSV emits an empty field for NULL.
         if ($isCsv) {
             return $value === '' ? null : $value;
         }
 
-        return $value === '\N' ? null : $value;
+        // mysql --batch emits \N for NULL; with --raw (escaping off) it's the
+        // literal "NULL". Treat both as null.
+        return ($value === '\N' || $value === 'NULL') ? null : $value;
     }
 }

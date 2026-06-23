@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ProcessSyncDownload;
 use App\Jobs\ProcessSyncImport;
 use App\Models\SyncDownload;
 use App\Models\SyncSource;
@@ -63,6 +64,20 @@ class SyncController extends Controller
      */
     public function download(SyncSource $source, SyncDownloadService $service): RedirectResponse
     {
+        if ($source->queue) {
+            ProcessSyncDownload::dispatch($source)->onQueue($source->queue);
+
+            Inertia::flash('toast', [
+                'type' => 'info',
+                'message' => __('Download queued for :name on “:queue”.', [
+                    'name' => $source->display_name,
+                    'queue' => $source->queue,
+                ]),
+            ]);
+
+            return to_route('sync.index');
+        }
+
         try {
             $download = $service->download($source);
 

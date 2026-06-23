@@ -4,10 +4,11 @@
         "name": "dealer.files",
         "display_name": "Dealer Files",
         "connection": "dealer",
-        "query": "select id,uuid,slug,model_id,model_type,collection_name,name,file_name,mime_type,disk,conversions_disk,size,original_size,created_at,updated_at from files",
+        "query": "select id, uuid, slug, model_id, model_type, collection_name, name, file_name, mime_type, disk, conversions_disk, size, original_size, created_at, updated_at from files",
         "target_table": "dealer_files",
-        "resolver_class": "",
+        "resolver_class": "App\\Services\\DataSync\\Resolvers\\DealerFileResolver",
         "queue": "sync-imports",
+        "chunk_size": 100000,
         "folder_path": "files",
         "file_name": "dealer_files_{{timestamp}}"
     }

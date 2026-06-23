@@ -33,7 +33,9 @@ class SyncDownloadService
         try {
             [$absolute, $name] = $this->resolvePath($source, $download, $fileType);
 
-            $metrics = $this->run($conn, $select, $absolute);
+            $metrics = $source->chunk_size
+                ? $this->runChunked($conn, $select, $absolute, $source->key_column ?: 'id', (int) $source->chunk_size, $fileType === 'csv')
+                : $this->run($conn, $select, $absolute);
 
             $download->forceFill([
                 'status' => SyncStatus::COMPLETED,
@@ -110,6 +112,190 @@ class SyncDownloadService
             'row_count' => max(0, $lines - 1), // total lines minus the header
             'checksum' => $bytes > 0 ? hash_final($hash) : null,
         ];
+    }
+
+    /**
+     * Keyset-paginated export: pull the table in chunks of `WHERE key > cursor
+     * ORDER BY key LIMIT n`, appending each chunk into a single file. Each chunk
+     * is a fast PK-index range scan on a fresh connection, so it never trips the
+     * server's max_execution_time the way one giant SELECT does.
+     *
+     * @param  array<string, mixed>  $conn
+     * @return array{size: int, row_count: int, checksum: string|null}
+     */
+    protected function runChunked(array $conn, string $select, string $path, string $key, int $chunk, bool $isCsv): array
+    {
+        $main = fopen($path, 'wb');
+
+        if ($main === false) {
+            throw new RuntimeException("Unable to open output file: {$path}");
+        }
+
+        $hash = hash_init('sha256');
+        $keyIndex = $this->keyIndexFromSelect($select, $key);
+        $tmp = $path.'.part';
+        $bytes = 0;
+        $rows = 0;
+        $cursor = null;
+
+        try {
+            while (true) {
+                $this->stream($conn, $this->chunkSql($select, $key, $cursor, $chunk), $tmp);
+
+                [$partRows, $lastKey, $partBytes] = $this->appendChunk(
+                    $tmp, $main, $hash, $isCsv, $keyIndex, $cursor === null,
+                );
+
+                $rows += $partRows;
+                $bytes += $partBytes;
+
+                // Stop on an empty/short chunk, or if the cursor fails to advance.
+                if ($partRows < $chunk || $lastKey === null || $lastKey === $cursor) {
+                    break;
+                }
+
+                $cursor = $lastKey;
+            }
+        } finally {
+            fclose($main);
+            @unlink($tmp);
+        }
+
+        return [
+            'size' => $bytes,
+            'row_count' => $rows,
+            'checksum' => $rows > 0 ? hash_final($hash) : null,
+        ];
+    }
+
+    /**
+     * Run one export query, streaming stdout into a file (no metrics).
+     *
+     * @param  array<string, mixed>  $conn
+     */
+    protected function stream(array $conn, string $sql, string $path): void
+    {
+        $process = new Process($this->command($sql, $conn), timeout: null, env: $this->env($conn));
+        $handle = fopen($path, 'wb');
+
+        if ($handle === false) {
+            throw new RuntimeException("Unable to open output file: {$path}");
+        }
+
+        try {
+            $process->run(function (string $type, string $buffer) use ($handle) {
+                if ($type === Process::OUT) {
+                    fwrite($handle, $buffer);
+                }
+            });
+        } finally {
+            fclose($handle);
+        }
+
+        if (! $process->isSuccessful()) {
+            throw new RuntimeException(
+                "{$conn['driver']} export failed: ".trim($process->getErrorOutput() ?: $process->getOutput())
+            );
+        }
+    }
+
+    /**
+     * Append a chunk file's data rows into the combined file (header only on the
+     * first chunk), returning [rows, lastKeyValue, bytesWritten].
+     *
+     * @param  resource  $main
+     * @return array{0: int, 1: string|null, 2: int}
+     */
+    protected function appendChunk(string $tmp, $main, \HashContext $hash, bool $isCsv, int $keyIndex, bool $withHeader): array
+    {
+        $in = fopen($tmp, 'rb');
+
+        if ($in === false) {
+            return [0, null, 0];
+        }
+
+        $rows = 0;
+        $bytes = 0;
+        $lineNo = 0;
+        $lastLine = null;
+
+        try {
+            while (($line = fgets($in)) !== false) {
+                $lineNo++;
+
+                if ($lineNo === 1) {
+                    if ($withHeader) {
+                        fwrite($main, $line);
+                        hash_update($hash, $line);
+                        $bytes += strlen($line);
+                    }
+
+                    continue;
+                }
+
+                if (trim($line) === '') {
+                    continue;
+                }
+
+                fwrite($main, $line);
+                hash_update($hash, $line);
+                $bytes += strlen($line);
+                $rows++;
+                $lastLine = $line;
+            }
+        } finally {
+            fclose($in);
+        }
+
+        $lastKey = null;
+
+        if ($lastLine !== null) {
+            $line = rtrim($lastLine, "\r\n");
+            $fields = $isCsv ? str_getcsv($line, escape: '') : explode("\t", $line);
+            $value = $fields[$keyIndex] ?? null;
+            $lastKey = ($value === null || $value === '' || $value === '\N') ? null : $value;
+        }
+
+        return [$rows, $lastKey, $bytes];
+    }
+
+    /**
+     * Build a keyset chunk query from the base SELECT.
+     */
+    protected function chunkSql(string $select, string $key, ?string $cursor, int $chunk): string
+    {
+        $where = '';
+
+        if ($cursor !== null) {
+            $value = is_numeric($cursor) ? $cursor : "'".str_replace("'", "''", $cursor)."'";
+            $where = " where {$key} > {$value}";
+        }
+
+        return "{$select}{$where} order by {$key} asc limit {$chunk}";
+    }
+
+    /**
+     * Locate the key column's position in the SELECT list (matching aliases).
+     */
+    protected function keyIndexFromSelect(string $select, string $key): int
+    {
+        if (! preg_match('/select\s+(.*?)\s+from\s/is', $select, $matches)) {
+            return 0;
+        }
+
+        foreach (array_map('trim', explode(',', $matches[1])) as $i => $column) {
+            if (preg_match('/\bas\s+["`]?([A-Za-z0-9_]+)["`]?$/i', $column, $alias)) {
+                $name = $alias[1];
+            } else {
+                $name = preg_replace('/^.*\./', '', trim($column, '"`'));
+            }
+
+            if (strcasecmp((string) $name, $key) === 0) {
+                return $i;
+            }
+        }
+
+        return 0;
     }
 
     /**

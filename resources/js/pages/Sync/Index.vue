@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
-import Column from 'primevue/column';
-import DataTable from 'primevue/datatable';
+import InputText from 'primevue/inputtext';
 import Tag from 'primevue/tag';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 type Status = 'pending' | 'running' | 'completed' | 'failed';
 
@@ -42,7 +41,7 @@ interface SyncSource {
     downloads: Download[];
 }
 
-defineProps<{ sources: SyncSource[] }>();
+const props = defineProps<{ sources: SyncSource[] }>();
 
 defineOptions({
     layout: {
@@ -50,9 +49,44 @@ defineOptions({
     },
 });
 
-const expandedRows = ref<Record<number, boolean>>({});
 const downloadingId = ref<number | null>(null);
 const importingId = ref<number | null>(null);
+const expanded = ref<Set<number>>(new Set());
+const selectedGroup = ref<string | null>(null);
+const search = ref('');
+
+const groups = computed(() => [
+    ...new Set(props.sources.map((s) => s.group)),
+]);
+
+const groupCount = (group: string) =>
+    props.sources.filter((s) => s.group === group).length;
+
+const filtered = computed(() => {
+    const term = search.value.trim().toLowerCase();
+    return props.sources.filter((s) => {
+        if (selectedGroup.value && s.group !== selectedGroup.value) return false;
+        if (!term) return true;
+        return (
+            s.display_name.toLowerCase().includes(term) ||
+            s.target_table.toLowerCase().includes(term)
+        );
+    });
+});
+
+const grouped = computed(() => {
+    const map = new Map<string, SyncSource[]>();
+    for (const s of filtered.value) {
+        (map.get(s.group) ?? map.set(s.group, []).get(s.group)!).push(s);
+    }
+    return [...map.entries()].map(([group, items]) => ({ group, items }));
+});
+
+const toggle = (id: number) => {
+    const next = new Set(expanded.value);
+    next.has(id) ? next.delete(id) : next.add(id);
+    expanded.value = next;
+};
 
 const severity = (status?: Status | string) => {
     switch (status) {
@@ -64,6 +98,19 @@ const severity = (status?: Status | string) => {
             return 'info';
         default:
             return 'secondary';
+    }
+};
+
+const statusIcon = (status?: Status | string) => {
+    switch (status) {
+        case 'completed':
+            return 'pi pi-check-circle';
+        case 'failed':
+            return 'pi pi-times-circle';
+        case 'running':
+            return 'pi pi-spin pi-spinner';
+        default:
+            return 'pi pi-clock';
     }
 };
 
@@ -104,9 +151,9 @@ const runImport = (download: Download) => {
 <template>
     <Head title="Data Sync" />
 
-    <div class="flex h-full flex-1 flex-col gap-4 p-4">
-        <div>
-            <h1 class="text-xl font-semibold">Data Sync</h1>
+    <div class="mx-auto flex h-full w-full max-w-5xl flex-1 flex-col gap-6 p-6">
+        <div class="space-y-1">
+            <h1 class="text-2xl font-semibold tracking-tight">Data Sync</h1>
             <p class="text-sm text-muted-foreground">
                 Two steps per source — <strong>download</strong> the source table
                 to a file, then <strong>import</strong> that file into its landing
@@ -114,97 +161,172 @@ const runImport = (download: Download) => {
             </p>
         </div>
 
-        <DataTable
-            v-model:expanded-rows="expandedRows"
-            :value="sources"
-            data-key="id"
-            striped-rows
-            row-group-mode="subheader"
-            group-rows-by="group"
-            class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+        <!-- Filter bar -->
+        <div class="flex flex-wrap items-center gap-2">
+            <button
+                type="button"
+                class="rounded-full border px-3 py-1 text-sm transition-colors"
+                :class="
+                    selectedGroup === null
+                        ? 'border-transparent bg-primary text-primary-foreground'
+                        : 'border-sidebar-border/70 text-muted-foreground hover:bg-muted'
+                "
+                @click="selectedGroup = null"
+            >
+                All
+                <span class="opacity-70">{{ sources.length }}</span>
+            </button>
+            <button
+                v-for="group in groups"
+                :key="group"
+                type="button"
+                class="rounded-full border px-3 py-1 text-sm transition-colors"
+                :class="
+                    selectedGroup === group
+                        ? 'border-transparent bg-primary text-primary-foreground'
+                        : 'border-sidebar-border/70 text-muted-foreground hover:bg-muted'
+                "
+                @click="selectedGroup = group"
+            >
+                {{ group }}
+                <span class="opacity-70">{{ groupCount(group) }}</span>
+            </button>
+
+            <div class="relative ml-auto">
+                <i
+                    class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground"
+                />
+                <InputText
+                    v-model="search"
+                    placeholder="Search sources…"
+                    class="w-56 pl-8"
+                    size="small"
+                />
+            </div>
+        </div>
+
+        <!-- Empty -->
+        <div
+            v-if="!filtered.length"
+            class="flex flex-col items-center gap-2 rounded-xl border border-dashed border-sidebar-border/70 p-12 text-center text-sm text-muted-foreground"
         >
-            <template #empty>
-                <div class="p-6 text-center text-sm text-muted-foreground">
-                    No sync sources configured.
-                </div>
-            </template>
+            <i class="pi pi-inbox text-2xl opacity-60" />
+            {{
+                sources.length
+                    ? 'No sources match your filter.'
+                    : 'No sync sources configured.'
+            }}
+        </div>
 
-            <template #groupheader="{ data }">
-                <span class="font-semibold">{{ data.group }}</span>
-            </template>
+        <!-- Grouped list -->
+        <div v-for="block in grouped" :key="block.group" class="space-y-2">
+            <h2
+                class="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+            >
+                {{ block.group }}
+            </h2>
 
-            <Column expander style="width: 3rem" />
-
-            <Column field="display_name" header="Source">
-                <template #body="{ data }">
-                    <div class="flex flex-col">
-                        <span class="font-medium">{{ data.display_name }}</span>
-                        <span class="text-xs text-muted-foreground">
-                            {{ data.connection }} → {{ data.target_table }} ·
-                            {{ data.resolver_class ?? 'default resolver' }}
-                        </span>
-                    </div>
-                </template>
-            </Column>
-
-            <Column header="Query">
-                <template #body="{ data }">
-                    <code
-                        class="block max-w-md truncate text-xs text-muted-foreground"
-                        :title="data.query"
+            <div
+                class="divide-y divide-sidebar-border/60 overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+            >
+                <div v-for="source in block.items" :key="source.id">
+                    <!-- Source row -->
+                    <div
+                        class="flex cursor-pointer items-center gap-4 px-4 py-3 transition-colors hover:bg-muted/40"
+                        @click="toggle(source.id)"
                     >
-                        {{ data.query }}
-                    </code>
-                </template>
-            </Column>
+                        <i
+                            class="pi text-xs text-muted-foreground transition-transform"
+                            :class="
+                                expanded.has(source.id)
+                                    ? 'pi-chevron-down'
+                                    : 'pi-chevron-right'
+                            "
+                        />
 
-            <Column header="Last synced" field="last_synced_at">
-                <template #body="{ data }">
-                    <span class="text-sm">{{
-                        formatDate(data.last_synced_at)
-                    }}</span>
-                </template>
-            </Column>
-
-            <Column header="" style="width: 11rem">
-                <template #body="{ data }">
-                    <Button
-                        label="Download"
-                        icon="pi pi-download"
-                        size="small"
-                        :loading="downloadingId === data.id"
-                        :disabled="downloadingId !== null"
-                        @click="runDownload(data)"
-                    />
-                </template>
-            </Column>
-
-            <template #expansion="{ data }">
-                <div class="p-3">
-                    <h3 class="mb-2 text-sm font-semibold">
-                        Downloads for {{ data.display_name }}
-                    </h3>
-                    <DataTable :value="data.downloads" data-key="id">
-                        <template #empty>
-                            <div
-                                class="p-3 text-center text-xs text-muted-foreground"
-                            >
-                                No downloads yet — hit “Download” above.
+                        <div class="min-w-0 flex-1">
+                            <div class="font-medium">
+                                {{ source.display_name }}
                             </div>
-                        </template>
+                            <div
+                                class="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground"
+                            >
+                                <code class="rounded bg-muted px-1 py-0.5">{{
+                                    source.connection
+                                }}</code>
+                                <i class="pi pi-arrow-right text-[0.6rem]" />
+                                <code class="rounded bg-muted px-1 py-0.5">{{
+                                    source.target_table
+                                }}</code>
+                            </div>
+                        </div>
 
-                        <Column header="#" field="id" style="width: 4rem">
-                            <template #body="{ data: d }">
-                                <span class="text-xs">#{{ d.id }}</span>
-                            </template>
-                        </Column>
+                        <div
+                            class="hidden w-44 shrink-0 flex-col gap-0.5 text-xs text-muted-foreground sm:flex"
+                        >
+                            <span class="flex items-center gap-1">
+                                <i class="pi pi-download text-[0.65rem]" />
+                                <span class="tabular-nums">{{
+                                    formatDate(source.last_downloaded_at)
+                                }}</span>
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <i class="pi pi-database text-[0.65rem]" />
+                                <span class="tabular-nums">{{
+                                    formatDate(source.last_synced_at)
+                                }}</span>
+                            </span>
+                        </div>
 
-                        <Column header="Download">
-                            <template #body="{ data: d }">
+                        <Button
+                            label="Download"
+                            icon="pi pi-download"
+                            size="small"
+                            outlined
+                            class="shrink-0"
+                            :loading="downloadingId === source.id"
+                            :disabled="downloadingId !== null"
+                            @click.stop="runDownload(source)"
+                        />
+                    </div>
+
+                    <!-- Expanded: downloads -->
+                    <div
+                        v-if="expanded.has(source.id)"
+                        class="border-t border-sidebar-border/60 bg-muted/30 px-4 py-3"
+                    >
+                        <code
+                            class="mb-3 block truncate rounded bg-muted/60 px-2 py-1 text-xs text-muted-foreground"
+                            :title="source.query"
+                        >
+                            {{ source.query }}
+                        </code>
+
+                        <div
+                            v-if="!source.downloads.length"
+                            class="py-2 text-center text-xs text-muted-foreground"
+                        >
+                            No downloads yet — hit “Download” above.
+                        </div>
+
+                        <div v-else class="space-y-2">
+                            <div
+                                v-for="d in source.downloads"
+                                :key="d.id"
+                                class="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-sidebar-border/60 bg-background px-3 py-2"
+                            >
+                                <span
+                                    class="text-xs tabular-nums text-muted-foreground"
+                                    >#{{ d.id }}</span
+                                >
+
                                 <div class="flex flex-col gap-1">
                                     <Tag
                                         :value="d.status"
                                         :severity="severity(d.status)"
+                                        :icon="statusIcon(d.status)"
+                                        rounded
+                                        class="w-fit"
                                     />
                                     <span class="text-xs text-muted-foreground">
                                         {{ d.file_type?.toUpperCase() }} ·
@@ -213,53 +335,58 @@ const runImport = (download: Download) => {
                                     </span>
                                     <span
                                         v-if="d.error_message"
-                                        class="text-xs text-red-500"
+                                        class="max-w-md truncate text-xs text-red-500"
+                                        :title="d.error_message"
                                     >
                                         {{ d.error_message }}
                                     </span>
                                 </div>
-                            </template>
-                        </Column>
 
-                        <Column header="Last import">
-                            <template #body="{ data: d }">
-                                <div
-                                    v-if="d.latest_import"
-                                    class="flex flex-col gap-1"
-                                >
-                                    <Tag
-                                        :value="d.latest_import.status"
-                                        :severity="
-                                            severity(d.latest_import.status)
-                                        "
-                                    />
-                                    <span class="text-xs text-muted-foreground">
-                                        {{ d.latest_import.rows_inserted }} new /
-                                        {{ d.latest_import.rows_updated }} upd /
-                                        {{ d.latest_import.rows_skipped }} skip
-                                    </span>
+                                <div class="flex flex-col gap-1">
+                                    <span
+                                        class="text-[0.7rem] uppercase tracking-wide text-muted-foreground"
+                                        >Last import</span
+                                    >
+                                    <template v-if="d.latest_import">
+                                        <Tag
+                                            :value="d.latest_import.status"
+                                            :severity="
+                                                severity(d.latest_import.status)
+                                            "
+                                            :icon="
+                                                statusIcon(d.latest_import.status)
+                                            "
+                                            rounded
+                                            class="w-fit"
+                                        />
+                                        <span
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            {{ d.latest_import.rows_inserted }} new
+                                            /
+                                            {{ d.latest_import.rows_updated }} upd /
+                                            {{ d.latest_import.rows_skipped }} skip
+                                        </span>
+                                    </template>
+                                    <span
+                                        v-else
+                                        class="text-xs text-muted-foreground"
+                                        >not imported</span
+                                    >
                                 </div>
-                                <span v-else class="text-xs text-muted-foreground"
-                                    >not imported</span
+
+                                <span
+                                    class="text-xs tabular-nums text-muted-foreground"
                                 >
-                            </template>
-                        </Column>
+                                    {{ formatDate(d.created_at) }}
+                                </span>
 
-                        <Column header="When" field="created_at">
-                            <template #body="{ data: d }">
-                                <span class="text-xs">{{
-                                    formatDate(d.created_at)
-                                }}</span>
-                            </template>
-                        </Column>
-
-                        <Column header="" style="width: 9rem">
-                            <template #body="{ data: d }">
                                 <Button
                                     label="Import"
                                     icon="pi pi-database"
                                     size="small"
                                     severity="secondary"
+                                    class="ml-auto shrink-0"
                                     :loading="importingId === d.id"
                                     :disabled="
                                         d.status !== 'completed' ||
@@ -267,11 +394,11 @@ const runImport = (download: Download) => {
                                     "
                                     @click="runImport(d)"
                                 />
-                            </template>
-                        </Column>
-                    </DataTable>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </template>
-        </DataTable>
+            </div>
+        </div>
     </div>
 </template>

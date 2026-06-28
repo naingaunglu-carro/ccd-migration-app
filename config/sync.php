@@ -43,10 +43,14 @@ return [
     'drivers' => [
         'mysql' => [
             'file_type' => 'tsv',
+            // --batch (no --raw) tab-separates rows AND escapes \t, \n, \\ inside
+            //   values, so multi-line text columns (e.g. notes) can't break the TSV
+            //   structure — the importer un-escapes these back. Keeping --raw would
+            //   emit literal newlines that split one row into many, shifting columns.
             // --default-character-set=utf8mb4 forces UTF-8 output; without it the
-            // client falls back to latin1 and mangles multibyte chars (é, ¥, ô …)
-            // into invalid byte sequences that Postgres rejects on import.
-            'flags' => ['--batch', '--raw', '--quick', '--default-character-set=utf8mb4'],
+            //   client falls back to latin1 and mangles multibyte chars (é, ¥, ô …)
+            //   into invalid byte sequences that Postgres rejects on import.
+            'flags' => ['--batch', '--quick', '--default-character-set=utf8mb4'],
         ],
         'pgsql' => [
             'file_type' => 'csv',

@@ -97,16 +97,42 @@ class SyncImportService
 
         $before = DB::table($table)->count();
         $headers = null;
+        $columns = null;
+        $idIndex = false;
         $read = 0;
         $skipped = 0;
+        $dropped = 0;
         $batch = [];
 
         try {
-            while (($values = $this->readRecord($handle, $isCsv)) !== null) {
+            while (($values = $this->readRecord($handle, $isCsv, $columns)) !== null) {
                 if ($headers === null) {
                     $headers = $values; // query output column names
+                    $columns = count($headers);
+                    $idIndex = array_search('id', $headers, true);
 
                     continue;
+                }
+
+                // A field count that doesn't match the header means the row could
+                // not be cleanly reconstructed (e.g. a value held literal tabs in an
+                // un-escaped export) — skip it rather than import shifted columns.
+                if (count($values) !== $columns) {
+                    $skipped++;
+
+                    continue;
+                }
+
+                // The source `id` is always a numeric PK; a non-numeric one means
+                // a value shifted into its slot (ambiguous row) — skip it.
+                if ($idIndex !== false) {
+                    $id = $values[$idIndex] ?? '';
+
+                    if ($id !== '' && $id !== 'NULL' && $id !== '\N' && ! ctype_digit($id)) {
+                        $skipped++;
+
+                        continue;
+                    }
                 }
 
                 $sourceRow = [];
@@ -127,31 +153,37 @@ class SyncImportService
                 $read++;
 
                 if (count($batch) >= self::BATCH_SIZE) {
-                    $this->flush($table, $keys, $stamps, $batch);
+                    $dropped += $this->flush($table, $keys, $stamps, $batch);
                     $batch = [];
                 }
             }
 
             if ($batch !== []) {
-                $this->flush($table, $keys, $stamps, $batch);
+                $dropped += $this->flush($table, $keys, $stamps, $batch);
             }
         } finally {
             fclose($handle);
         }
 
         $inserted = max(0, DB::table($table)->count() - $before);
+        $persisted = max(0, $read - $dropped);
 
-        return ['read' => $read, 'inserted' => $inserted, 'updated' => max(0, $read - $inserted), 'skipped' => $skipped];
+        return ['read' => $read, 'inserted' => $inserted, 'updated' => max(0, $persisted - $inserted), 'skipped' => $skipped + $dropped];
     }
 
     /**
      * Upsert one batch, stamping local columns (sync_created_at is insert-only).
+     * Returns the number of rows that could not be persisted (dropped).
+     *
+     * If the bulk upsert throws (one malformed row — e.g. a shifted column from an
+     * ambiguous un-escaped export — poisons the whole statement), it retries the
+     * batch row by row so only the offending rows are dropped.
      *
      * @param  list<string>  $keys
      * @param  list<string>  $stamps
      * @param  list<array<string, mixed>>  $batch
      */
-    protected function flush(string $table, array $keys, array $stamps, array $batch): void
+    protected function flush(string $table, array $keys, array $stamps, array $batch): int
     {
         $now = Carbon::now();
 
@@ -166,7 +198,23 @@ class SyncImportService
         // Update everything except the key(s) and sync_created_at (preserved on conflict).
         $updateColumns = array_values(array_diff(array_keys($batch[0]), $keys, ['sync_created_at']));
 
-        DB::table($table)->upsert($batch, $keys, $updateColumns);
+        try {
+            DB::table($table)->upsert($batch, $keys, $updateColumns);
+
+            return 0;
+        } catch (\Throwable $e) {
+            $failed = 0;
+
+            foreach ($batch as $row) {
+                try {
+                    DB::table($table)->upsert([$row], $keys, $updateColumns);
+                } catch (\Throwable $e2) {
+                    $failed++;
+                }
+            }
+
+            return $failed;
+        }
     }
 
     /**
@@ -190,10 +238,15 @@ class SyncImportService
      * Read one record from the file: CSV via fgetcsv, TSV via tab split.
      * Returns null at EOF.
      *
+     * For TSV, $columns (the header width) lets us heal rows that were written
+     * with literal newlines inside a value (e.g. a multi-line `notes` column from
+     * an un-escaped mysql export): physical lines are merged back — rejoined with
+     * the newline that split them — until the row has its full column count.
+     *
      * @param  resource  $handle
      * @return list<string|null>|null
      */
-    protected function readRecord($handle, bool $isCsv): ?array
+    protected function readRecord($handle, bool $isCsv, ?int $columns = null): ?array
     {
         if ($isCsv) {
             $values = fgetcsv($handle, escape: '');
@@ -212,7 +265,28 @@ class SyncImportService
             return null;
         }
 
-        return explode("\t", rtrim($line, "\r\n"));
+        $line = rtrim($line, "\r\n");
+        $fields = explode("\t", $line);
+
+        // Header row (or unknown width): take the single physical line as-is.
+        if ($columns === null) {
+            return $fields;
+        }
+
+        // A short row means a value held a literal newline that split it across
+        // lines — pull in continuation lines (restoring the newline) until whole.
+        while (count($fields) < $columns) {
+            $next = fgets($handle);
+
+            if ($next === false) {
+                break; // EOF mid-row — return what we have.
+            }
+
+            $line .= "\n".rtrim($next, "\r\n");
+            $fields = explode("\t", $line);
+        }
+
+        return $fields;
     }
 
     /**
@@ -229,8 +303,17 @@ class SyncImportService
             return $value === '' ? null : $value;
         }
 
-        // mysql --batch emits \N for NULL; with --raw (escaping off) it's the
-        // literal "NULL". Treat both as null.
-        return ($value === '\N' || $value === 'NULL') ? null : $value;
+        // mysql --batch emits \N for NULL; an un-escaped (--raw) export emits the
+        // literal "NULL". An empty cell is also treated as null (landing columns
+        // are nullable, and bool/int columns reject ""). Treat all three as null.
+        if ($value === '' || $value === '\N' || $value === 'NULL') {
+            return null;
+        }
+
+        // mysql --batch escapes special chars inside values; reverse it so
+        // multi-line text (e.g. notes) is restored intact. strtr replaces in a
+        // single pass (longest match wins, no re-scan), so "\\" → "\" doesn't
+        // re-trigger the "\n"/"\t" rules.
+        return strtr($value, ['\\\\' => '\\', '\\t' => "\t", '\\n' => "\n", '\\0' => "\0"]);
     }
 }

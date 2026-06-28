@@ -12,17 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('dealer_transactions', function (Blueprint $table) {
-            $table->id();
-            $table->string('type');
-            $table->string('title');
-            $table->unsignedBigInteger('status_id');
-            $table->unsignedBigInteger('source_id');
-            $table->timestamp('source_created_at')->nullable();
-            $table->timestamp('source_updated_at')->nullable();
-            $table->timestamp('source_deleted_at')->nullable();
-            $table->timestamp('last_synced_at')->nullable();
-            $table->timestamps();
-            $table->unique('source_id');
+            $table->bigIncrements('sync_id');
+            $table->timestamp('sync_created_at')->nullable();
+            $table->timestamp('sync_updated_at')->nullable();
+            $table->timestamp('sync_last_synced_at')->nullable();
         });
     }
 

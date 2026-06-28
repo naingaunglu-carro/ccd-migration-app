@@ -54,10 +54,10 @@ class DealerFileDownloadService
                 ->when($options['collection'] ?? null, fn ($q, $v) => $q->where('collection_name', $v))
                 ->when($options['model_type'] ?? null, fn ($q, $v) => $q->where('model_type', $v))
                 ->when($options['file_name'] ?? null, fn ($q, $v) => $q->where('file_name', $v))
-                ->when($options['since'] ?? null, fn ($q, $v) => $q->where('source_updated_at', '>=', $v))
+                ->when($options['since'] ?? null, fn ($q, $v) => $q->where('updated_at', '>=', $v))
                 ->orderBy('id')
                 ->limit(self::READ_CHUNK)
-                ->get(['id', 'source_id', 'file_name', 'size']);
+                ->get(['id', 'file_name', 'size']);
 
             if ($rows->isEmpty()) {
                 break;
@@ -137,19 +137,19 @@ class DealerFileDownloadService
      * Derive the storage object key for a dealer_files row.
      *
      * Spatie Media Library stores each file under "{media_id}/{file_name}"; here
-     * source_id is that original media id. An optional prefix nests the mirror
-     * under a sub-folder. Returns null when the row lacks the columns to build a
-     * key (e.g. a null file_name).
+     * the row id is that original media id (imported columns keep their source
+     * names). An optional prefix nests the mirror under a sub-folder. Returns
+     * null when the row lacks the columns to build a key (e.g. a null file_name).
      */
     protected function objectKey(object $row, string $keyPrefix): ?string
     {
-        if (empty($row->source_id) || empty($row->file_name)) {
+        if (empty($row->id) || empty($row->file_name)) {
             return null;
         }
 
         $prefix = trim($keyPrefix, '/');
         $prefix = $prefix === '' ? '' : $prefix.'/';
 
-        return $prefix.$row->source_id.'/'.$row->file_name;
+        return $prefix.$row->id.'/'.$row->file_name;
     }
 }

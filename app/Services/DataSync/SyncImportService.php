@@ -82,8 +82,10 @@ class SyncImportService
         $keys = array_values((array) $resolver->uniqueBy());
 
         // Query-builder upsert doesn't manage these — stamp the ones the table has.
+        // These are the local bookkeeping columns; imported created_at/updated_at
+        // flow through as ordinary data and are never auto-stamped here.
         $stamps = array_values(array_filter(
-            ['created_at', 'updated_at', 'last_synced_at'],
+            ['local_created_at', 'local_updated_at', 'local_synced_at'],
             fn ($column) => Schema::hasColumn($table, $column),
         ));
 
@@ -143,7 +145,7 @@ class SyncImportService
     }
 
     /**
-     * Upsert one batch, stamping timestamp columns (created_at is insert-only).
+     * Upsert one batch, stamping local columns (local_created_at is insert-only).
      *
      * @param  list<string>  $keys
      * @param  list<string>  $stamps
@@ -161,8 +163,8 @@ class SyncImportService
         }
         unset($row);
 
-        // Update everything except the key(s) and created_at (preserved on conflict).
-        $updateColumns = array_values(array_diff(array_keys($batch[0]), $keys, ['created_at']));
+        // Update everything except the key(s) and local_created_at (preserved on conflict).
+        $updateColumns = array_values(array_diff(array_keys($batch[0]), $keys, ['local_created_at']));
 
         DB::table($table)->upsert($batch, $keys, $updateColumns);
     }

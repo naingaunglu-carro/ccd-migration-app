@@ -7,19 +7,20 @@ use App\Models\SyncSource;
 
 /**
  * Resolver for the dealer.files source — maps the raw `files` columns onto the
- * dealer_files table (source id/timestamps land in the source_* columns).
+ * dealer_files table (imported columns keep their natural names; the table's own
+ * local_* columns are stamped by the import pipeline).
  */
 class DealerFileResolver implements ImportResolver
 {
     public function uniqueBy(): string|array
     {
-        return 'source_id';
+        return 'id';
     }
 
     public function map(array $row, SyncSource $source): ?array
     {
         return [
-            'source_id' => $row['id'] ?? null,
+            'id' => $row['id'] ?? null,
             'uuid' => $row['uuid'] ?? null,
             'slug' => $row['slug'] ?? null,
             'model_id' => $row['model_id'] ?? null,
@@ -32,8 +33,8 @@ class DealerFileResolver implements ImportResolver
             'conversions_disk' => $row['conversions_disk'] ?? null,
             'size' => $row['size'] ?? null,
             'original_size' => $row['original_size'] ?? null,
-            'source_created_at' => $row['created_at'] ?? null,
-            'source_updated_at' => $row['updated_at'] ?? null,
+            'created_at' => $row['created_at'] ?? null,
+            'updated_at' => $row['updated_at'] ?? null,
         ];
     }
 }

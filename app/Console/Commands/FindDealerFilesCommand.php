@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Read-only lookup over dealer_files. Prints the S3 object key
- * ("{key-prefix}/{source_id}/{file_name}") for matching rows so they can be
+ * ("{key-prefix}/{id}/{file_name}") for matching rows so they can be
  * fetched by hand from the AWS Console / CloudShell when S3 is not reachable
  * locally. Mirrors the filters of dealer:download-files but copies nothing.
  */
@@ -20,10 +20,10 @@ class FindDealerFilesCommand extends Command
         {--file-name= : Match file_name exactly (e.g. "Owner-IC.pdf")}
         {--collection= : Only files whose collection_name matches}
         {--model-type= : Only files whose model_type matches}
-        {--since= : Only files with source_updated_at >= this datetime}
+        {--since= : Only files with updated_at >= this datetime}
         {--from-id= : Lowest dealer_files.id to include}
         {--to-id= : Highest dealer_files.id to include}
-        {--key-prefix= : Path prefix prepended to the source_id/file_name key}
+        {--key-prefix= : Path prefix prepended to the id/file_name key}
         {--limit=100 : Max rows to print (0 for no limit)}
         {--keys-only : Print only the S3 keys, one per line (pipe-friendly)}';
 
@@ -42,7 +42,7 @@ class FindDealerFilesCommand extends Command
             ->when($this->option('file-name'), fn ($q, $v) => $q->where('file_name', $v))
             ->when($this->option('collection'), fn ($q, $v) => $q->where('collection_name', $v))
             ->when($this->option('model-type'), fn ($q, $v) => $q->where('model_type', $v))
-            ->when($this->option('since'), fn ($q, $v) => $q->where('source_updated_at', '>=', $v))
+            ->when($this->option('since'), fn ($q, $v) => $q->where('updated_at', '>=', $v))
             ->when($this->option('from-id') !== null, fn ($q) => $q->where('id', '>=', (int) $this->option('from-id')))
             ->when($this->option('to-id') !== null, fn ($q) => $q->where('id', '<=', (int) $this->option('to-id')))
             ->orderBy('id');
@@ -51,7 +51,7 @@ class FindDealerFilesCommand extends Command
             $query->limit($limit);
         }
 
-        $rows = $query->get(['id', 'source_id', 'file_name', 'collection_name', 'model_type', 'size']);
+        $rows = $query->get(['id', 'file_name', 'collection_name', 'model_type', 'size']);
 
         if ($rows->isEmpty()) {
             $this->warn('No matching dealer_files rows.');
@@ -70,10 +70,9 @@ class FindDealerFilesCommand extends Command
         }
 
         $this->table(
-            ['id', 'source_id', 'file_name', 'collection', 'model_type', 'size', 's3_key'],
+            ['id', 'file_name', 'collection', 'model_type', 'size', 's3_key'],
             $rows->map(fn ($row) => [
                 $row->id,
-                $row->source_id,
                 $row->file_name,
                 $row->collection_name,
                 $row->model_type,
@@ -93,12 +92,12 @@ class FindDealerFilesCommand extends Command
      */
     protected function objectKey(object $row, string $keyPrefix): ?string
     {
-        if (empty($row->source_id) || empty($row->file_name)) {
+        if (empty($row->id) || empty($row->file_name)) {
             return null;
         }
 
         $prefix = $keyPrefix === '' ? '' : $keyPrefix.'/';
 
-        return $prefix.$row->source_id.'/'.$row->file_name;
+        return $prefix.$row->id.'/'.$row->file_name;
     }
 }

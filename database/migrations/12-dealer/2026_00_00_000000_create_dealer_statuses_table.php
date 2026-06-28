@@ -12,16 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('dealer_statuses', function (Blueprint $table) {
-            $table->id();
+            // Imported columns — mirror the source `statuses` table verbatim.
+            $table->unsignedBigInteger('id')->primary();
             $table->string('name');
             $table->string('display_name');
-            $table->unsignedBigInteger('source_id');
-            $table->timestamp('source_created_at')->nullable();
-            $table->timestamp('source_updated_at')->nullable();
-            $table->timestamp('source_deleted_at')->nullable();
-            $table->timestamp('last_synced_at')->nullable();
-            $table->timestamps();
-            $table->unique('source_id');
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
+            $table->timestamp('deleted_at')->nullable();
+
+            // Local bookkeeping — stamped by the import pipeline.
+            $table->timestamp('local_created_at')->nullable();
+            $table->timestamp('local_updated_at')->nullable();
+            $table->timestamp('local_synced_at')->nullable();
         });
     }
 

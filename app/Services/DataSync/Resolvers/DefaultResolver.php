@@ -9,12 +9,13 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Convention-based resolver used when a source defines no resolver_class.
  *
- *  - uniqueBy: "source_id"
+ *  - uniqueBy: "id"
  *  - map:      identity, filtered to the target table's real columns
  *
- * To use it, write the source query to output columns that match the target
- * table's column names (alias as needed), e.g.
- *   select id as source_id, name, created_at as source_created_at from statuses
+ * Imported columns keep their natural source names; the target table reserves
+ * local_* columns for its own bookkeeping (stamped by SyncImportService). So
+ * the source query just selects the raw columns, no aliasing, e.g.
+ *   select id, name, created_at, updated_at, deleted_at from statuses
  */
 class DefaultResolver implements ImportResolver
 {
@@ -23,7 +24,7 @@ class DefaultResolver implements ImportResolver
 
     public function uniqueBy(): string|array
     {
-        return 'source_id';
+        return 'id';
     }
 
     public function map(array $row, SyncSource $source): ?array

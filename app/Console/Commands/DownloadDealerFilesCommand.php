@@ -21,14 +21,14 @@ class DownloadDealerFilesCommand extends Command
     protected $signature = 'dealer:download-files
         {--source-disk=s3 : Disk to read objects from}
         {--target-disk=local : Disk to write objects to}
-        {--key-prefix= : Path prefix prepended to "{source_id}/{file_name}"}
+        {--key-prefix= : Path prefix prepended to "{id}/{file_name}"}
         {--chunk=2000 : dealer_files rows per slice (one job each when --queue)}
         {--from-id= : Lowest dealer_files.id to include (default: table min)}
         {--to-id= : Highest dealer_files.id to include (default: table max)}
         {--collection= : Only files whose collection_name matches}
         {--model-type= : Only files whose model_type matches}
         {--file-name= : Only files whose file_name matches exactly (e.g. "Owner-IC.pdf")}
-        {--since= : Only files with source_updated_at >= this datetime}
+        {--since= : Only files with updated_at >= this datetime}
         {--overwrite : Re-download even if the object already exists on the target}
         {--queue= : Queue name to dispatch slices to (omit to run inline)}';
 

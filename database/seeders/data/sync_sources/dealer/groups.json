@@ -4,7 +4,7 @@
         "name": "dealer.groups",
         "display_name": "Dealer Groups",
         "connection": "dealer",
-        "query": "select id, level, group_id, make_id, name, email, display_name, description, is_internal, is_subsidiary, country_id, province_id, city_id, location_text, address, business_letter_address, postal_code, size_of_showroom, company_registration_number, sst_registration_number, business_registration_number, tax_identification_number, contact_person, contact_number, display_bid_count, preference, whitelist, auction_meta, location_coordinates, additional_data, social_data, published_on_web, search_cache, search_cache_updated_at, search_cache_status, relation_manager_id, working_hours, membership_tier_id, created_at, updated_at, deleted_at from groups",
+        "query": "SELECT id, level, group_id, make_id, name, email, display_name, description, is_internal, is_subsidiary, country_id, province_id, city_id, location_text, address, business_letter_address, postal_code, size_of_showroom, company_registration_number, sst_registration_number, business_registration_number, tax_identification_number, contact_person, contact_number, display_bid_count, preference, whitelist, auction_meta, location_coordinates, social_data, created_at, updated_at, deleted_at, relation_manager_id, working_hours, membership_tier_id FROM groups;",
         "target_table": "dealer_groups",
         "resolver_class": "",
         "folder_path": "groups",

@@ -1,25 +1,2 @@
 [
-    {
-        "group": "Contacts",
-        "name": "dealer.contacts",
-        "display_name": "Dealer Contacts",
-        "connection": "dealer",
-        "query": "select id, uuid, group_id, country_id, province_id, city_id, slug, towkay_uuid, name, display_name, first_name, last_name, phone, secondary_phone, email, address, address_2, postcode, national_identity_number, tax_identification_number, last_login_at, secondary_email, password, fcm_uuids, social_accounts, notification_preferences, app_allow_notification, app_allow_sound, accept_marketing_updates, locale, first_login, last_login, first_login_app, last_login_app, last_activity_at, google_account_id, email_verified_at, stripe_account_id, has_payment_card, default_payment_card, provider_name, provider_id, additional_data, search_cache, search_cache_status, search_cache_updated_at, is_active, line_user_id, line_display_name, line_account_status, notes, note_updated_at, last_note_by, is_external_agent, created_at, updated_at, deleted_at from contacts",
-        "target_table": "dealer_contacts",
-        "resolver_class": "",
-        "queue": "sync-imports",
-        "folder_path": "contacts",
-        "file_name": "dealer_contacts_{{timestamp}}"
-    },
-    {
-        "group": "Contacts",
-        "name": "dealer.company_contacts",
-        "display_name": "Dealer Company Contacts",
-        "connection": "dealer",
-        "query": "select id, user_id, group_id, country_id, province_id, city_id, name, phone, email, address, unique_entity_number, tax_identification_number, national_identity_number, date_of_incorporation, additional_data, search_cache, search_cache_status, search_cache_updated_at, created_at, updated_at, deleted_at from company_contacts",
-        "target_table": "dealer_company_contacts",
-        "resolver_class": "",
-        "folder_path": "contacts",
-        "file_name": "dealer_company_contacts_{{timestamp}}"
-    }
 ]

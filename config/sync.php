@@ -43,7 +43,10 @@ return [
     'drivers' => [
         'mysql' => [
             'file_type' => 'tsv',
-            'flags' => ['--batch', '--raw', '--quick'],
+            // --default-character-set=utf8mb4 forces UTF-8 output; without it the
+            // client falls back to latin1 and mangles multibyte chars (é, ¥, ô …)
+            // into invalid byte sequences that Postgres rejects on import.
+            'flags' => ['--batch', '--raw', '--quick', '--default-character-set=utf8mb4'],
         ],
         'pgsql' => [
             'file_type' => 'csv',

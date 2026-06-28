@@ -31,5 +31,39 @@
         "resolver_class": "",
         "folder_path": "references",
         "file_name": "dealer_transaction_party_roles_{{timestamp}}"
+    },
+    {
+        "group": "References",
+        "name": "dealer.bank_accounts",
+        "display_name": "Dealer Bank Accounts",
+        "connection": "dealer",
+        "query": "SELECT id, bank_id, account_no, account_holder_type, account_holder_id, account_holder_name, status_id, is_default, is_active, has_acknowledge_verification, proof_file_id, remarks, additional_data, created_at, updated_at, deleted_at FROM bank_accounts;",
+        "target_table": "dealer_bank_accounts",
+        "resolver_class": "",
+        "queue": "sync-imports",
+        "folder_path": "references",
+        "file_name": "dealer_bank_accounts_{{timestamp}}"
+    },
+    {
+        "group": "References",
+        "name": "dealer.contact_relationships",
+        "display_name": "Dealer Contact Relationships",
+        "connection": "dealer",
+        "query": "SELECT id, parent_id, children_id, relation, created_at, updated_at FROM contact_relationships;",
+        "target_table": "dealer_contact_relationships",
+        "resolver_class": "",
+        "folder_path": "references",
+        "file_name": "dealer_contact_relationships_{{timestamp}}"
+    },
+    {
+        "group": "References",
+        "name": "dealer.banks",
+        "display_name": "Dealer Banks",
+        "connection": "dealer",
+        "query": "SELECT id, country_id, is_active, display_name, bic, payment_mode, created_at, updated_at, deleted_at FROM banks;",
+        "target_table": "dealer_banks",
+        "resolver_class": "",
+        "folder_path": "references",
+        "file_name": "dealer_banks_{{timestamp}}"
     }
 ]

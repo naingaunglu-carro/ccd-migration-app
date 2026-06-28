@@ -65,15 +65,22 @@ class SyncController extends Controller
     public function download(SyncSource $source, SyncDownloadService $service): RedirectResponse
     {
         if ($source->queue) {
-            ProcessSyncDownload::dispatch($source)->onQueue($source->queue);
+            try {
+                ProcessSyncDownload::dispatch($source)->onQueue($source->queue);
 
-            Inertia::flash('toast', [
-                'type' => 'info',
-                'message' => __('Download queued for :name on “:queue”.', [
-                    'name' => $source->display_name,
-                    'queue' => $source->queue,
-                ]),
-            ]);
+                Inertia::flash('toast', [
+                    'type' => 'info',
+                    'message' => __('Download queued for :name on “:queue”.', [
+                        'name' => $source->display_name,
+                        'queue' => $source->queue,
+                    ]),
+                ]);
+            } catch (\Throwable $e) {
+                Inertia::flash('toast', [
+                    'type' => 'error',
+                    'message' => __('Could not queue download: :error', ['error' => $e->getMessage()]),
+                ]);
+            }
 
             return to_route('sync.index');
         }
@@ -109,15 +116,22 @@ class SyncController extends Controller
         $source = $download->source;
 
         if ($source->queue) {
-            ProcessSyncImport::dispatch($download)->onQueue($source->queue);
+            try {
+                ProcessSyncImport::dispatch($download)->onQueue($source->queue);
 
-            Inertia::flash('toast', [
-                'type' => 'info',
-                'message' => __('Import queued for :name on “:queue”.', [
-                    'name' => $source->display_name,
-                    'queue' => $source->queue,
-                ]),
-            ]);
+                Inertia::flash('toast', [
+                    'type' => 'info',
+                    'message' => __('Import queued for :name on “:queue”.', [
+                        'name' => $source->display_name,
+                        'queue' => $source->queue,
+                    ]),
+                ]);
+            } catch (\Throwable $e) {
+                Inertia::flash('toast', [
+                    'type' => 'error',
+                    'message' => __('Could not queue import: :error', ['error' => $e->getMessage()]),
+                ]);
+            }
 
             return to_route('sync.index');
         }

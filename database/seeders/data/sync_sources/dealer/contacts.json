@@ -10,5 +10,16 @@
         "queue": "sync-imports",
         "folder_path": "contacts",
         "file_name": "dealer_contacts_{{timestamp}}"
+    },
+    {
+        "group": "Contacts",
+        "name": "dealer.company_contacts",
+        "display_name": "Dealer Company Contacts",
+        "connection": "dealer",
+        "query": "SELECT id, user_id, group_id, country_id, province_id, city_id, name, phone, email, address, unique_entity_number, tax_identification_number, national_identity_number, date_of_incorporation, additional_data, search_cache, search_cache_status, search_cache_updated_at, created_at, updated_at, deleted_at FROM company_contacts;",
+        "target_table": "dealer_company_contacts",
+        "resolver_class": "",
+        "folder_path": "contacts",
+        "file_name": "dealer_company_contacts_{{timestamp}}"
     }
 ]

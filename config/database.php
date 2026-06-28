@@ -99,6 +99,21 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
+        'ccd' => [
+            'driver' => 'pgsql',
+            'url' => env('CCD_DB_URL'),
+            'host' => env('CCD_DB_HOST', '127.0.0.1'),
+            'port' => env('CCD_DB_PORT', '5432'),
+            'database' => env('CCD_DB_DATABASE', 'ccd'),
+            'username' => env('CCD_DB_USERNAME', 'postgres'),
+            'password' => env('CCD_DB_PASSWORD', ''),
+            'charset' => env('CCD_DB_CHARSET', 'utf8'),
+            'prefix' => env('CCD_DB_PREFIX', ''),
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => env('CCD_DB_SSLMODE', 'prefer'),
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),

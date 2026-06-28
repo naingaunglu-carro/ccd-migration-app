@@ -8,7 +8,8 @@
         "target_table": "dealer_groups",
         "resolver_class": "",
         "queue": "sync-imports",
+        "chunk_size": 100000,
         "folder_path": "groups",
-        "file_name": "dealer_groups_{{timestamp}}"
+        "file_name": "dealer_groups_{{date}}"
     }
 ]

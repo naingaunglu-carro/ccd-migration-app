@@ -8,8 +8,9 @@
         "target_table": "dealer_contacts",
         "resolver_class": "",
         "queue": "sync-imports",
+        "chunk_size": 100000,
         "folder_path": "contacts",
-        "file_name": "dealer_contacts_{{timestamp}}"
+        "file_name": "dealer_contacts_{{date}}"
     },
     {
         "group": "Contacts",
@@ -20,6 +21,6 @@
         "target_table": "dealer_company_contacts",
         "resolver_class": "",
         "folder_path": "contacts",
-        "file_name": "dealer_company_contacts_{{timestamp}}"
+        "file_name": "dealer_company_contacts_{{date}}"
     }
 ]

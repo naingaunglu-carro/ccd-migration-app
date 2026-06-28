@@ -8,7 +8,7 @@
         "target_table": "dealer_countries",
         "resolver_class": "",
         "folder_path": "references",
-        "file_name": "dealer_countries_{{timestamp}}"
+        "file_name": "dealer_countries_{{date}}"
     },
     {
         "group": "References",
@@ -19,7 +19,7 @@
         "target_table": "dealer_statuses",
         "resolver_class": "",
         "folder_path": "references",
-        "file_name": "dealer_statuses_{{timestamp}}"
+        "file_name": "dealer_statuses_{{date}}"
     },
     {
         "group": "References",
@@ -30,7 +30,7 @@
         "target_table": "dealer_transaction_party_roles",
         "resolver_class": "",
         "folder_path": "references",
-        "file_name": "dealer_transaction_party_roles_{{timestamp}}"
+        "file_name": "dealer_transaction_party_roles_{{date}}"
     },
     {
         "group": "References",
@@ -41,8 +41,9 @@
         "target_table": "dealer_bank_accounts",
         "resolver_class": "",
         "queue": "sync-imports",
+        "chunk_size": 100000,
         "folder_path": "references",
-        "file_name": "dealer_bank_accounts_{{timestamp}}"
+        "file_name": "dealer_bank_accounts_{{date}}"
     },
     {
         "group": "References",
@@ -53,7 +54,7 @@
         "target_table": "dealer_contact_relationships",
         "resolver_class": "",
         "folder_path": "references",
-        "file_name": "dealer_contact_relationships_{{timestamp}}"
+        "file_name": "dealer_contact_relationships_{{date}}"
     },
     {
         "group": "References",
@@ -64,6 +65,6 @@
         "target_table": "dealer_banks",
         "resolver_class": "",
         "folder_path": "references",
-        "file_name": "dealer_banks_{{timestamp}}"
+        "file_name": "dealer_banks_{{date}}"
     }
 ]

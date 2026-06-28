@@ -8,8 +8,9 @@
         "target_table": "dealer_transactions",
         "resolver_class": "",
         "queue": "sync-imports",
+        "chunk_size": 100000,
         "folder_path": "transactions",
-        "file_name": "dealer_transactions_{{timestamp}}"
+        "file_name": "dealer_transactions_{{date}}"
     },
     {
         "group": "Transactions",
@@ -20,7 +21,8 @@
         "target_table": "dealer_transaction_parties",
         "resolver_class": "",
         "queue": "sync-imports",
+        "chunk_size": 100000,
         "folder_path": "transactions",
-        "file_name": "dealer_transaction_parties_{{timestamp}}"
+        "file_name": "dealer_transaction_parties_{{date}}"
     }
 ]

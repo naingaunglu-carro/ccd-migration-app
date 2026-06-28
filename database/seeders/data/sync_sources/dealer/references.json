@@ -9,5 +9,71 @@
         "resolver_class": "",
         "folder_path": "references",
         "file_name": "dealer_statuses_{{timestamp}}"
+    },
+    {
+        "group": "References",
+        "name": "dealer.banks",
+        "display_name": "Dealer Banks",
+        "connection": "dealer",
+        "query": "select id, country_id, is_active, display_name, bic, payment_mode, created_at as source_created_at, updated_at as source_updated_at, deleted_at from banks",
+        "target_table": "dealer_banks",
+        "resolver_class": "",
+        "folder_path": "references",
+        "file_name": "dealer_banks_{{timestamp}}"
+    },
+    {
+        "group": "References",
+        "name": "dealer.bank_accounts",
+        "display_name": "Dealer Bank Accounts",
+        "connection": "dealer",
+        "query": "select id as source_id, bank_id, account_no, account_holder_type, account_holder_id, account_holder_name, status_id, is_default, is_active, has_acknowledge_verification, proof_file_id, remarks, additional_data, created_at as source_created_at, updated_at as source_updated_at, deleted_at from bank_accounts",
+        "target_table": "dealer_bank_accounts",
+        "resolver_class": "",
+        "folder_path": "references",
+        "file_name": "dealer_bank_accounts_{{timestamp}}"
+    },
+    {
+        "group": "References",
+        "name": "dealer.contact_sources",
+        "display_name": "Dealer Contact Sources",
+        "connection": "dealer",
+        "query": "select id as source_id, contact_channel_id, country_id, value, title, created_at as source_created_at, updated_at as source_updated_at, deleted_at from contact_sources",
+        "target_table": "dealer_contact_sources",
+        "resolver_class": "",
+        "folder_path": "references",
+        "file_name": "dealer_contact_sources_{{timestamp}}"
+    },
+    {
+        "group": "References",
+        "name": "dealer.contact_relationships",
+        "display_name": "Dealer Contact Relationships",
+        "connection": "dealer",
+        "query": "select id as source_id, parent_id, children_id, relation, created_at as source_created_at, updated_at as source_updated_at from contact_relationships",
+        "target_table": "dealer_contact_relationships",
+        "resolver_class": "",
+        "folder_path": "references",
+        "file_name": "dealer_contact_relationships_{{timestamp}}"
+    },
+    {
+        "group": "References",
+        "name": "dealer.transaction_party_roles",
+        "display_name": "Dealer Transaction Party Roles",
+        "connection": "dealer",
+        "query": "select id as source_id, name, display_name, created_at as source_created_at, updated_at as source_updated_at, deleted_at from transaction_party_roles",
+        "target_table": "dealer_transaction_party_roles",
+        "resolver_class": "",
+        "folder_path": "references",
+        "file_name": "dealer_transaction_party_roles_{{timestamp}}"
+    },
+    {
+        "group": "References",
+        "name": "dealer.countries",
+        "display_name": "Dealer Countries",
+        "connection": "dealer",
+        "query": "select id, name, display_name, phone_code, country_code, currency_code, currency_symbol, language, timezone, is_active, created_at, updated_at, deleted_at from countries",
+        "target_table": "dealer_countries",
+        "resolver_class": "",
+        "folder_path": "references",
+        "file_name": "dealer_countries_{{timestamp}}"
     }
 ]

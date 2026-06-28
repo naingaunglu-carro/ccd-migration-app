@@ -4,11 +4,23 @@
         "name": "dealer.transactions",
         "display_name": "Dealer Transactions",
         "connection": "dealer",
-        "query": "select id, type, title, status_id, created_at, updated_at from transactions",
+        "query": "select id, type, title, country_id, group_id, status_id, created_at, updated_at, deleted_at from transactions",
         "target_table": "dealer_transactions",
         "resolver_class": "",
         "queue": "sync-imports",
         "folder_path": "transactions",
         "file_name": "dealer_transactions_{{timestamp}}"
+    },
+    {
+        "group": "Transactions",
+        "name": "dealer.transaction_parties",
+        "display_name": "Dealer Transaction Parties",
+        "connection": "dealer",
+        "query": "select id, transaction_id, type, type_id, role_id, represents_group_id, created_at, updated_at, deleted_at from transaction_parties",
+        "target_table": "dealer_transaction_parties",
+        "resolver_class": "",
+        "queue": "sync-imports",
+        "folder_path": "transactions",
+        "file_name": "dealer_transaction_parties_{{timestamp}}"
     }
 ]

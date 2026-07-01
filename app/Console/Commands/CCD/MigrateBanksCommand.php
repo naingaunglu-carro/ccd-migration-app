@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\CCD;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -24,24 +24,15 @@ class MigrateBanksCommand extends Command
      */
     protected $description = 'Migrate dealer_banks into ccd_banks for a tenant (resolved by country)';
 
-    /**
-     * Manual tenant_id => country_id mapping. Add a row per tenant.
-     *
-     * @var array<int, int>
-     */
-    private const TENANT_COUNTRY = [
-        1 => 49,
-    ];
-
     public function handle(): int
     {
         $tenantId = (int) $this->argument('tenant_id');
 
-        // country_id is resolved from the manual map above.
-        $countryId = self::TENANT_COUNTRY[$tenantId] ?? null;
+        // country_id is resolved from the shared tenant => country map in config/ccd.php.
+        $countryId = config("ccd.tenant_country.{$tenantId}");
 
         if ($countryId === null) {
-            $this->error("No country mapped for tenant #{$tenantId}. Add it to MigrateBanksCommand::TENANT_COUNTRY.");
+            $this->error("No country mapped for tenant #{$tenantId}. Add it to config/ccd.php (tenant_country).");
 
             return self::FAILURE;
         }
@@ -53,6 +44,7 @@ class MigrateBanksCommand extends Command
         // Only this tenant's country, excluding soft-deleted banks.
         DB::table('dealer_banks')
             ->where('country_id', $countryId)
+            ->where('is_active', true)
             ->whereNull('deleted_at')
             ->orderBy('id')
             ->chunkById(500, function ($banks) use ($tenantId, &$migrated) {

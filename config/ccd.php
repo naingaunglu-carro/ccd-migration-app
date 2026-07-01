@@ -11,7 +11,8 @@ return [
     */
 
     'tenant_country' => [
-        1 => 49,
+        1 => 49, // Malaysia
+        2 => 1, // Singapore
     ],
 
     /*

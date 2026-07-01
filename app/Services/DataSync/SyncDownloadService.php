@@ -16,17 +16,17 @@ class SyncDownloadService
      */
     public function download(SyncSource $source): SyncDownload
     {
-        $conn = $this->connection($source);
-        $driver = $conn['driver'];
+        $conn     = $this->connection($source);
+        $driver   = $conn['driver'];
         $fileType = config("sync.drivers.{$driver}.file_type", 'tsv');
-        $select = $this->select($source); // resolved query — snapshotted on the row
+        $select   = $this->select($source); // resolved query — snapshotted on the row
 
         $download = $source->downloads()->create([
             'connection' => $source->connection,
-            'query' => $select,
-            'file_disk' => 'local',
-            'file_type' => $fileType,
-            'status' => SyncStatus::RUNNING,
+            'query'      => $select,
+            'file_disk'  => 'local',
+            'file_type'  => $fileType,
+            'status'     => SyncStatus::RUNNING,
             'started_at' => Carbon::now(),
         ]);
 
@@ -38,21 +38,21 @@ class SyncDownloadService
                 : $this->run($conn, $select, $absolute);
 
             $download->forceFill([
-                'status' => SyncStatus::COMPLETED,
-                'file_path' => $absolute,
-                'file_name' => $name,
-                'file_size' => $metrics['size'] ?: null,
-                'checksum' => $metrics['checksum'],
-                'row_count' => $metrics['row_count'],
+                'status'      => SyncStatus::COMPLETED,
+                'file_path'   => $absolute,
+                'file_name'   => $name,
+                'file_size'   => $metrics['size'] ?: null,
+                'checksum'    => $metrics['checksum'],
+                'row_count'   => $metrics['row_count'],
                 'finished_at' => Carbon::now(),
             ])->save();
 
             $source->forceFill(['last_downloaded_at' => Carbon::now()])->save();
         } catch (\Throwable $e) {
             $download->forceFill([
-                'status' => SyncStatus::FAILED,
+                'status'        => SyncStatus::FAILED,
                 'error_message' => $e->getMessage(),
-                'finished_at' => Carbon::now(),
+                'finished_at'   => Carbon::now(),
             ])->save();
 
             throw $e;
@@ -68,6 +68,7 @@ class SyncDownloadService
      * so huge exports are never re-read from disk afterwards.
      *
      * @param  array<string, mixed>  $conn
+     *
      * @return array{size: int, row_count: int, checksum: string|null}
      */
     protected function run(array $conn, string $select, string $path): array
@@ -84,7 +85,7 @@ class SyncDownloadService
             throw new RuntimeException("Unable to open output file: {$path}");
         }
 
-        $hash = hash_init('sha256');
+        $hash  = hash_init('sha256');
         $bytes = 0;
         $lines = 0;
 
@@ -103,14 +104,14 @@ class SyncDownloadService
 
         if (! $process->isSuccessful()) {
             throw new RuntimeException(
-                "{$conn['driver']} export failed: ".trim($process->getErrorOutput() ?: $process->getOutput())
+                "{$conn['driver']} export failed: " . trim($process->getErrorOutput() ?: $process->getOutput())
             );
         }
 
         return [
-            'size' => $bytes,
+            'size'      => $bytes,
             'row_count' => max(0, $lines - 1), // total lines minus the header
-            'checksum' => $bytes > 0 ? hash_final($hash) : null,
+            'checksum'  => $bytes > 0 ? hash_final($hash) : null,
         ];
     }
 
@@ -121,6 +122,7 @@ class SyncDownloadService
      * server's max_execution_time the way one giant SELECT does.
      *
      * @param  array<string, mixed>  $conn
+     *
      * @return array{size: int, row_count: int, checksum: string|null}
      */
     protected function runChunked(array $conn, string $select, string $path, string $key, int $chunk, bool $isCsv): array
@@ -131,12 +133,12 @@ class SyncDownloadService
             throw new RuntimeException("Unable to open output file: {$path}");
         }
 
-        $hash = hash_init('sha256');
+        $hash     = hash_init('sha256');
         $keyIndex = $this->keyIndexFromSelect($select, $key);
-        $tmp = $path.'.part';
-        $bytes = 0;
-        $rows = 0;
-        $cursor = null;
+        $tmp      = $path . '.part';
+        $bytes    = 0;
+        $rows     = 0;
+        $cursor   = null;
 
         try {
             while (true) {
@@ -162,9 +164,9 @@ class SyncDownloadService
         }
 
         return [
-            'size' => $bytes,
+            'size'      => $bytes,
             'row_count' => $rows,
-            'checksum' => $rows > 0 ? hash_final($hash) : null,
+            'checksum'  => $rows > 0 ? hash_final($hash) : null,
         ];
     }
 
@@ -176,7 +178,7 @@ class SyncDownloadService
     protected function stream(array $conn, string $sql, string $path): void
     {
         $process = new Process($this->command($sql, $conn), timeout: null, env: $this->env($conn));
-        $handle = fopen($path, 'wb');
+        $handle  = fopen($path, 'wb');
 
         if ($handle === false) {
             throw new RuntimeException("Unable to open output file: {$path}");
@@ -194,7 +196,7 @@ class SyncDownloadService
 
         if (! $process->isSuccessful()) {
             throw new RuntimeException(
-                "{$conn['driver']} export failed: ".trim($process->getErrorOutput() ?: $process->getOutput())
+                "{$conn['driver']} export failed: " . trim($process->getErrorOutput() ?: $process->getOutput())
             );
         }
     }
@@ -204,6 +206,7 @@ class SyncDownloadService
      * first chunk), returning [rows, lastKeyValue, bytesWritten].
      *
      * @param  resource  $main
+     *
      * @return array{0: int, 1: string|null, 2: int}
      */
     protected function appendChunk(string $tmp, $main, \HashContext $hash, bool $isCsv, int $keyIndex, bool $withHeader): array
@@ -214,9 +217,9 @@ class SyncDownloadService
             return [0, null, 0];
         }
 
-        $rows = 0;
-        $bytes = 0;
-        $lineNo = 0;
+        $rows     = 0;
+        $bytes    = 0;
+        $lineNo   = 0;
         $lastLine = null;
 
         try {
@@ -250,9 +253,9 @@ class SyncDownloadService
         $lastKey = null;
 
         if ($lastLine !== null) {
-            $line = rtrim($lastLine, "\r\n");
-            $fields = $isCsv ? str_getcsv($line, escape: '') : explode("\t", $line);
-            $value = $fields[$keyIndex] ?? null;
+            $line    = rtrim($lastLine, "\r\n");
+            $fields  = $isCsv ? str_getcsv($line, escape: '') : explode("\t", $line);
+            $value   = $fields[$keyIndex] ?? null;
             $lastKey = ($value === null || $value === '' || $value === '\N') ? null : $value;
         }
 
@@ -267,7 +270,7 @@ class SyncDownloadService
         $where = '';
 
         if ($cursor !== null) {
-            $value = is_numeric($cursor) ? $cursor : "'".str_replace("'", "''", $cursor)."'";
+            $value = is_numeric($cursor) ? $cursor : "'" . str_replace("'", "''", $cursor) . "'";
             $where = " where {$key} > {$value}";
         }
 
@@ -302,13 +305,14 @@ class SyncDownloadService
      * Build the export command (argv) for the connection's driver.
      *
      * @param  array<string, mixed>  $conn
+     *
      * @return list<string>
      */
     protected function command(string $select, array $conn): array
     {
         $driver = $conn['driver'];
         $binary = config("sync.binaries.{$driver}", $driver);
-        $flags = (array) config("sync.drivers.{$driver}.flags", []);
+        $flags  = (array) config("sync.drivers.{$driver}.flags", []);
 
         return match ($driver) {
             'mysql' => array_merge(
@@ -318,16 +322,16 @@ class SyncDownloadService
                 ['-u', (string) $conn['username']],
                 ['--database', (string) $conn['database']],
                 $flags,
-                ['--ssl-mode='.$conn['ssl_mode']],
-                ['--connect-timeout='.$conn['connect_timeout']],
+                ['--ssl-mode=' . $conn['ssl_mode']],
+                ['--connect-timeout=' . $conn['connect_timeout']],
                 ['-e', $select],
             ),
             'pgsql' => array_merge(
                 [$binary],
-                ['--host='.$conn['host']],
-                ['--port='.$conn['port']],
-                ['--username='.$conn['username']],
-                ['--dbname='.$conn['database']],
+                ['--host=' . $conn['host']],
+                ['--port=' . $conn['port']],
+                ['--username=' . $conn['username']],
+                ['--dbname=' . $conn['database']],
                 ['--no-psqlrc', '-v', 'ON_ERROR_STOP=1'],
                 $flags,
                 ['-c', "\\copy ({$select}) TO STDOUT WITH (FORMAT csv, HEADER true)"],
@@ -367,6 +371,7 @@ class SyncDownloadService
      * Driver-specific environment (keeps the password off argv).
      *
      * @param  array<string, mixed>  $conn
+     *
      * @return array<string, string>
      */
     protected function env(array $conn): array
@@ -374,8 +379,8 @@ class SyncDownloadService
         return match ($conn['driver']) {
             'mysql' => ['MYSQL_PWD' => (string) $conn['password']],
             'pgsql' => [
-                'PGPASSWORD' => (string) $conn['password'],
-                'PGSSLMODE' => (string) ($conn['ssl_mode'] ?? 'prefer'),
+                'PGPASSWORD'        => (string) $conn['password'],
+                'PGSSLMODE'         => (string) ($conn['ssl_mode'] ?? 'prefer'),
                 'PGCONNECT_TIMEOUT' => (string) ($conn['connect_timeout'] ?? 30),
             ],
             default => [],
@@ -416,8 +421,8 @@ class SyncDownloadService
         // none falls back to a per-source slug directory.
         $dir = match (true) {
             $source->folder_path && str_starts_with($source->folder_path, '/') => $source->folder_path,
-            (bool) $source->folder_path => "{$base}/".trim($source->folder_path, '/'),
-            default => "{$base}/{$source->target_table}",
+            (bool) $source->folder_path                                        => "{$base}/" . trim($source->folder_path, '/'),
+            default                                                            => "{$base}/{$source->target_table}",
         };
         $dir = rtrim($dir, '/');
 
@@ -426,7 +431,7 @@ class SyncDownloadService
         }
 
         $pattern = $source->file_name ?: '{{timestamp}}_{{id}}';
-        $name = $this->resolveFileName($pattern, $download).".{$fileType}";
+        $name    = $this->resolveFileName($pattern, $download) . ".{$fileType}";
 
         return ["{$dir}/{$name}", $name];
     }
@@ -440,8 +445,8 @@ class SyncDownloadService
 
         return strtr($pattern, [
             '{{timestamp}}' => $now->format('Ymd_His'),
-            '{{date}}' => $now->format('Ymd'),
-            '{{id}}' => (string) $download->id,
+            '{{date}}'      => $now->format('Ymd'),
+            '{{id}}'        => (string) $download->id,
         ]);
     }
 }

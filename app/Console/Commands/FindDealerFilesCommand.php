@@ -35,8 +35,8 @@ class FindDealerFilesCommand extends Command
     public function handle(): int
     {
         $keyPrefix = trim((string) ($this->option('key-prefix') ?? ''), '/');
-        $keysOnly = (bool) $this->option('keys-only');
-        $limit = (int) $this->option('limit');
+        $keysOnly  = (bool) $this->option('keys-only');
+        $limit     = (int) $this->option('limit');
 
         $query = DB::table('dealer_files')
             ->when($this->option('file-name'), fn ($q, $v) => $q->where('file_name', $v))
@@ -96,8 +96,8 @@ class FindDealerFilesCommand extends Command
             return null;
         }
 
-        $prefix = $keyPrefix === '' ? '' : $keyPrefix.'/';
+        $prefix = $keyPrefix === '' ? '' : $keyPrefix . '/';
 
-        return $prefix.$row->id.'/'.$row->file_name;
+        return $prefix . $row->id . '/' . $row->file_name;
     }
 }

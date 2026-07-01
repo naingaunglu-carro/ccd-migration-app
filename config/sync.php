@@ -54,7 +54,7 @@ return [
         ],
         'pgsql' => [
             'file_type' => 'csv',
-            'flags' => [],
+            'flags'     => [],
         ],
     ],
 
@@ -72,25 +72,25 @@ return [
     'connections' => [
 
         'dealer' => [
-            'driver' => 'mysql',
-            'host' => env('DEALER_DB_HOST'),
-            'port' => env('DEALER_DB_PORT', 3306),
-            'database' => env('DEALER_DB_DATABASE', 'dealer'),
-            'username' => env('DEALER_DB_USERNAME'),
-            'password' => env('DEALER_DB_PASSWORD'),
-            'ssl_mode' => env('DEALER_DB_SSL_MODE', 'REQUIRED'),
+            'driver'          => 'mysql',
+            'host'            => env('DEALER_DB_HOST'),
+            'port'            => env('DEALER_DB_PORT', 3306),
+            'database'        => env('DEALER_DB_DATABASE', 'dealer'),
+            'username'        => env('DEALER_DB_USERNAME'),
+            'password'        => env('DEALER_DB_PASSWORD'),
+            'ssl_mode'        => env('DEALER_DB_SSL_MODE', 'REQUIRED'),
             'connect_timeout' => env('DEALER_DB_CONNECT_TIMEOUT', 30),
         ],
 
         // Example Postgres source — duplicate and adjust per real source.
         'pg_example' => [
-            'driver' => 'pgsql',
-            'host' => env('PG_EXAMPLE_DB_HOST'),
-            'port' => env('PG_EXAMPLE_DB_PORT', 5432),
-            'database' => env('PG_EXAMPLE_DB_DATABASE'),
-            'username' => env('PG_EXAMPLE_DB_USERNAME'),
-            'password' => env('PG_EXAMPLE_DB_PASSWORD'),
-            'ssl_mode' => env('PG_EXAMPLE_DB_SSL_MODE', 'require'),
+            'driver'          => 'pgsql',
+            'host'            => env('PG_EXAMPLE_DB_HOST'),
+            'port'            => env('PG_EXAMPLE_DB_PORT', 5432),
+            'database'        => env('PG_EXAMPLE_DB_DATABASE'),
+            'username'        => env('PG_EXAMPLE_DB_USERNAME'),
+            'password'        => env('PG_EXAMPLE_DB_PASSWORD'),
+            'ssl_mode'        => env('PG_EXAMPLE_DB_SSL_MODE', 'require'),
             'connect_timeout' => env('PG_EXAMPLE_DB_CONNECT_TIMEOUT', 30),
         ],
 

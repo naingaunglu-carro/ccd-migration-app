@@ -81,7 +81,7 @@ class InstallFeaturesCommand extends Command
 
     protected function installNodeDependencies(): void
     {
-        $npm = Chisel::in(base_path())->npm();
+        $npm            = Chisel::in(base_path())->npm();
         $packageManager = $npm->packageManager();
 
         spin(

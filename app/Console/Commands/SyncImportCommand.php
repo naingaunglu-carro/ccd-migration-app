@@ -39,7 +39,7 @@ class SyncImportCommand extends Command
                 $job->onQueue($queue);
             }
 
-            $this->info("Queued import for download #{$download->id}".($queue ? " on \"{$queue}\"" : '').'.');
+            $this->info("Queued import for download #{$download->id}" . ($queue ? " on \"{$queue}\"" : '') . '.');
 
             return self::SUCCESS;
         }
@@ -49,7 +49,7 @@ class SyncImportCommand extends Command
         $import = $service->import($download);
 
         $this->info("Done: {$import->rows_read} read, {$import->rows_inserted} inserted, "
-            ."{$import->rows_updated} updated, {$import->rows_skipped} skipped.");
+            . "{$import->rows_updated} updated, {$import->rows_skipped} skipped.");
 
         return self::SUCCESS;
     }

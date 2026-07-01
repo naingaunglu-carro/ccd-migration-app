@@ -14,4 +14,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('sync/downloads/{download}/import', [SyncController::class, 'import'])->name('sync.import');
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

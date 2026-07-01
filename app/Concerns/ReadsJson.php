@@ -22,7 +22,7 @@ trait ReadsJson
         $decoded = json_decode((string) file_get_contents($path), true);
 
         if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
-            throw new RuntimeException("Invalid JSON in {$path}: ".json_last_error_msg());
+            throw new RuntimeException("Invalid JSON in {$path}: " . json_last_error_msg());
         }
 
         return $decoded;

@@ -30,6 +30,7 @@ class DealerFileDownloadService
      * source disk to the target disk, mirroring the object key on both sides.
      *
      * @param  array{since?:?string,collection?:?string,model_type?:?string,file_name?:?string,overwrite?:bool}  $options
+     *
      * @return array{seen:int,copied:int,skipped:int,missing:int,failed:int,bytes:int}
      */
     public function downloadRange(
@@ -40,11 +41,11 @@ class DealerFileDownloadService
         string $keyPrefix = '',
         array $options = [],
     ): array {
-        $source = Storage::disk($sourceDisk);
-        $target = Storage::disk($targetDisk);
+        $source    = Storage::disk($sourceDisk);
+        $target    = Storage::disk($targetDisk);
         $overwrite = (bool) ($options['overwrite'] ?? false);
 
-        $stats = ['seen' => 0, 'copied' => 0, 'skipped' => 0, 'missing' => 0, 'failed' => 0, 'bytes' => 0];
+        $stats  = ['seen' => 0, 'copied' => 0, 'skipped' => 0, 'missing' => 0, 'failed' => 0, 'bytes' => 0];
         $cursor = $idFrom - 1;
 
         while (true) {
@@ -148,8 +149,8 @@ class DealerFileDownloadService
         }
 
         $prefix = trim($keyPrefix, '/');
-        $prefix = $prefix === '' ? '' : $prefix.'/';
+        $prefix = $prefix === '' ? '' : $prefix . '/';
 
-        return $prefix.$row->id.'/'.$row->file_name;
+        return $prefix . $row->id . '/' . $row->file_name;
     }
 }

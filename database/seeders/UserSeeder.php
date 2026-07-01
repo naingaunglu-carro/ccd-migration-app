@@ -22,8 +22,8 @@ class UserSeeder extends Seeder
         }
 
         Artisan::call('user:create', [
-            '--name' => 'Admin',
-            '--email' => $email,
+            '--name'     => 'Admin',
+            '--email'    => $email,
             '--password' => 'password',
             '--verified' => true,
         ], $this->command?->getOutput());

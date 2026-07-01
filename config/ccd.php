@@ -24,10 +24,10 @@ return [
     */
 
     'party_types' => [
-        'App\\Modules\\Account\\User\\Models\\User' => ['source' => 'dealer_users', 'ref' => 'user', 'kind' => 'person'],
-        'App\\Modules\\Contact\\Models\\Contact' => ['source' => 'dealer_contacts', 'ref' => 'contact', 'kind' => 'person'],
+        'App\\Modules\\Account\\User\\Models\\User'     => ['source' => 'dealer_users', 'ref' => 'user', 'kind' => 'person'],
+        'App\\Modules\\Contact\\Models\\Contact'        => ['source' => 'dealer_contacts', 'ref' => 'contact', 'kind' => 'person'],
         'App\\Modules\\Contact\\Models\\CompanyContact' => ['source' => 'dealer_company_contacts', 'ref' => 'company_contact', 'kind' => 'company'],
-        'App\\Modules\\Account\\Group\\Models\\Group' => ['source' => 'dealer_groups', 'ref' => 'group', 'kind' => 'company'],
+        'App\\Modules\\Account\\Group\\Models\\Group'   => ['source' => 'dealer_groups', 'ref' => 'group', 'kind' => 'company'],
     ],
 
 ];

@@ -56,9 +56,9 @@ class SyncSource extends Model
     protected function casts(): array
     {
         return [
-            'chunk_size' => 'integer',
+            'chunk_size'         => 'integer',
             'last_downloaded_at' => 'datetime',
-            'last_synced_at' => 'datetime',
+            'last_synced_at'     => 'datetime',
         ];
     }
 
@@ -83,7 +83,7 @@ class SyncSource extends Model
         $resolver = app($class);
 
         if (! $resolver instanceof ImportResolver) {
-            throw new InvalidArgumentException("[{$class}] must implement ".ImportResolver::class.'.');
+            throw new InvalidArgumentException("[{$class}] must implement " . ImportResolver::class . '.');
         }
 
         return $resolver;

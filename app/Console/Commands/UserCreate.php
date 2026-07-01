@@ -28,8 +28,8 @@ class UserCreate extends Command
     public function handle(UserManager $users): int
     {
         $attributes = [
-            'name' => $this->option('name') ?? text('Name', required: true),
-            'email' => $this->option('email') ?? text('Email', required: true),
+            'name'     => $this->option('name') ?? text('Name', required: true),
+            'email'    => $this->option('email') ?? text('Email', required: true),
             'password' => $this->option('password') ?? password('Password', required: true),
         ];
 

@@ -32,15 +32,15 @@ class SyncImportService
             throw new RuntimeException("Download file is missing: {$download->file_path}");
         }
 
-        $source = $download->source;
+        $source   = $download->source;
         $resolver = $source->resolver();
 
         $import = $download->imports()->create([
             'sync_source_id' => $source->id,
-            'target_table' => $source->target_table,
+            'target_table'   => $source->target_table,
             'resolver_class' => $source->resolver_class,
-            'status' => SyncStatus::RUNNING,
-            'started_at' => Carbon::now(),
+            'status'         => SyncStatus::RUNNING,
+            'started_at'     => Carbon::now(),
         ]);
 
         try {
@@ -49,18 +49,18 @@ class SyncImportService
             $source->forceFill(['last_synced_at' => Carbon::now()])->save();
 
             $import->forceFill([
-                'status' => SyncStatus::COMPLETED,
-                'rows_read' => $stats['read'],
+                'status'        => SyncStatus::COMPLETED,
+                'rows_read'     => $stats['read'],
                 'rows_inserted' => $stats['inserted'],
-                'rows_updated' => $stats['updated'],
-                'rows_skipped' => $stats['skipped'],
-                'finished_at' => Carbon::now(),
+                'rows_updated'  => $stats['updated'],
+                'rows_skipped'  => $stats['skipped'],
+                'finished_at'   => Carbon::now(),
             ])->save();
         } catch (\Throwable $e) {
             $import->forceFill([
-                'status' => SyncStatus::FAILED,
+                'status'        => SyncStatus::FAILED,
                 'error_message' => $e->getMessage(),
-                'finished_at' => Carbon::now(),
+                'finished_at'   => Carbon::now(),
             ])->save();
 
             throw $e;
@@ -79,7 +79,7 @@ class SyncImportService
     {
         $isCsv = $download->file_type === 'csv';
         $table = $source->target_table;
-        $keys = array_values((array) $resolver->uniqueBy());
+        $keys  = array_values((array) $resolver->uniqueBy());
 
         // Query-builder upsert doesn't manage these — stamp the ones the table has.
         // These are the local bookkeeping columns; imported created_at/updated_at
@@ -95,14 +95,14 @@ class SyncImportService
             throw new RuntimeException("Unable to read file: {$download->file_path}");
         }
 
-        $before = DB::table($table)->count();
+        $before  = DB::table($table)->count();
         $headers = null;
         $columns = null;
         $idIndex = false;
-        $read = 0;
+        $read    = 0;
         $skipped = 0;
         $dropped = 0;
-        $batch = [];
+        $batch   = [];
 
         try {
             while (($values = $this->readRecord($handle, $isCsv, $columns)) !== null) {
@@ -165,7 +165,7 @@ class SyncImportService
             fclose($handle);
         }
 
-        $inserted = max(0, DB::table($table)->count() - $before);
+        $inserted  = max(0, DB::table($table)->count() - $before);
         $persisted = max(0, $read - $dropped);
 
         return ['read' => $read, 'inserted' => $inserted, 'updated' => max(0, $persisted - $inserted), 'skipped' => $skipped + $dropped];
@@ -244,6 +244,7 @@ class SyncImportService
      * the newline that split them — until the row has its full column count.
      *
      * @param  resource  $handle
+     *
      * @return list<string|null>|null
      */
     protected function readRecord($handle, bool $isCsv, ?int $columns = null): ?array
@@ -265,7 +266,7 @@ class SyncImportService
             return null;
         }
 
-        $line = rtrim($line, "\r\n");
+        $line   = rtrim($line, "\r\n");
         $fields = explode("\t", $line);
 
         // Header row (or unknown width): take the single physical line as-is.
@@ -282,7 +283,7 @@ class SyncImportService
                 break; // EOF mid-row — return what we have.
             }
 
-            $line .= "\n".rtrim($next, "\r\n");
+            $line .= "\n" . rtrim($next, "\r\n");
             $fields = explode("\t", $line);
         }
 

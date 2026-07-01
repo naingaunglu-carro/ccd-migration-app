@@ -4,10 +4,10 @@ namespace App\Enums\Sync;
 
 enum SyncStatus: string
 {
-    case PENDING = 'pending';
-    case RUNNING = 'running';
+    case PENDING   = 'pending';
+    case RUNNING   = 'running';
     case COMPLETED = 'completed';
-    case FAILED = 'failed';
+    case FAILED    = 'failed';
 
     /**
      * All backing values — handy for migration enum columns and validation.
@@ -26,9 +26,9 @@ enum SyncStatus: string
     {
         return match ($this) {
             self::COMPLETED => 'success',
-            self::FAILED => 'danger',
-            self::RUNNING => 'info',
-            self::PENDING => 'secondary',
+            self::FAILED    => 'danger',
+            self::RUNNING   => 'info',
+            self::PENDING   => 'secondary',
         };
     }
 

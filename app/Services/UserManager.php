@@ -17,8 +17,8 @@ class UserManager
     public function create(array $attributes, bool $verified = false): User
     {
         $user = User::create([
-            'name' => $attributes['name'],
-            'email' => $attributes['email'],
+            'name'     => $attributes['name'],
+            'email'    => $attributes['email'],
             'password' => $attributes['password'], // hashed by the model's cast
         ]);
 
@@ -33,6 +33,7 @@ class UserManager
      * Validate the attributes for creating a user.
      *
      * @param  array<string, mixed>  $attributes
+     *
      * @return array<string, mixed>
      *
      * @throws ValidationException
@@ -50,8 +51,8 @@ class UserManager
     protected function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'name'     => ['required', 'string', 'max:255'],
+            'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', Password::default()],
         ];
     }

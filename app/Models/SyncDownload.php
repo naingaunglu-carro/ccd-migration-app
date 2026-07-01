@@ -55,10 +55,10 @@ class SyncDownload extends Model
     protected function casts(): array
     {
         return [
-            'status' => SyncStatus::class,
-            'file_size' => 'integer',
-            'row_count' => 'integer',
-            'started_at' => 'datetime',
+            'status'      => SyncStatus::class,
+            'file_size'   => 'integer',
+            'row_count'   => 'integer',
+            'started_at'  => 'datetime',
             'finished_at' => 'datetime',
         ];
     }

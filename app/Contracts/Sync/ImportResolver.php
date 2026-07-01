@@ -20,6 +20,7 @@ interface ImportResolver
      * target-table row. Return null to skip the row.
      *
      * @param  array<string, string|null>  $row
+     *
      * @return array<string, mixed>|null
      */
     public function map(array $row, SyncSource $source): ?array;

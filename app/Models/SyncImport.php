@@ -49,13 +49,13 @@ class SyncImport extends Model
     protected function casts(): array
     {
         return [
-            'status' => SyncStatus::class,
-            'rows_read' => 'integer',
+            'status'        => SyncStatus::class,
+            'rows_read'     => 'integer',
             'rows_inserted' => 'integer',
-            'rows_updated' => 'integer',
-            'rows_skipped' => 'integer',
-            'started_at' => 'datetime',
-            'finished_at' => 'datetime',
+            'rows_updated'  => 'integer',
+            'rows_skipped'  => 'integer',
+            'started_at'    => 'datetime',
+            'finished_at'   => 'datetime',
         ];
     }
 

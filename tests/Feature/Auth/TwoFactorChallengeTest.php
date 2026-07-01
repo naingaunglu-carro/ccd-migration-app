@@ -29,14 +29,14 @@ class TwoFactorChallengeTest extends TestCase
     public function test_two_factor_challenge_can_be_rendered(): void
     {
         Features::twoFactorAuthentication([
-            'confirm' => true,
+            'confirm'         => true,
             'confirmPassword' => true,
         ]);
 
         $user = User::factory()->withTwoFactor()->create();
 
         $this->post(route('login'), [
-            'email' => $user->email,
+            'email'    => $user->email,
             'password' => 'password',
         ]);
 

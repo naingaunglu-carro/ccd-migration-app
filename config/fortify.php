@@ -148,10 +148,10 @@ return [
     */
 
     'passkeys' => [
-        'relying_party_id' => parse_url(config('app.url'), PHP_URL_HOST),
-        'allowed_origins' => [config('app.url')],
+        'relying_party_id'   => parse_url(config('app.url'), PHP_URL_HOST),
+        'allowed_origins'    => [config('app.url')],
         'user_handle_secret' => env('PASSKEYS_USER_HANDLE_SECRET', config('app.key')),
-        'timeout' => 60000,
+        'timeout'            => 60000,
     ],
     /* @end-chisel-passkeys */
 
@@ -174,7 +174,7 @@ return [
         /* @end-chisel-email-verification */
         /* @chisel-2fa */
         Features::twoFactorAuthentication([
-            'confirm' => true,
+            'confirm'         => true,
             'confirmPassword' => true,
             // 'window' => 0
         ]),

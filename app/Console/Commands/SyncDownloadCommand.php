@@ -39,7 +39,7 @@ class SyncDownloadCommand extends Command
                 $job->onQueue($queue);
             }
 
-            $this->info("Queued download for {$source->display_name}".($queue ? " on \"{$queue}\"" : '').'.');
+            $this->info("Queued download for {$source->display_name}" . ($queue ? " on \"{$queue}\"" : '') . '.');
 
             return self::SUCCESS;
         }

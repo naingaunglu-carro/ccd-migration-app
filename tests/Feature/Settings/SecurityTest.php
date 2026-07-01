@@ -18,7 +18,7 @@ class SecurityTest extends TestCase
         $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 
         Features::twoFactorAuthentication([
-            'confirm' => true,
+            'confirm'         => true,
             'confirmPassword' => true,
         ]);
         /* @chisel-passkeys */
@@ -53,7 +53,7 @@ class SecurityTest extends TestCase
         $user = User::factory()->create();
 
         Features::twoFactorAuthentication([
-            'confirm' => true,
+            'confirm'         => true,
             'confirmPassword' => true,
         ]);
 
@@ -98,8 +98,8 @@ class SecurityTest extends TestCase
             ->actingAs($user)
             ->from(route('security.edit'))
             ->put(route('user-password.update'), [
-                'current_password' => 'password',
-                'password' => 'new-password',
+                'current_password'      => 'password',
+                'password'              => 'new-password',
                 'password_confirmation' => 'new-password',
             ]);
 
@@ -118,8 +118,8 @@ class SecurityTest extends TestCase
             ->actingAs($user)
             ->from(route('security.edit'))
             ->put(route('user-password.update'), [
-                'current_password' => 'wrong-password',
-                'password' => 'new-password',
+                'current_password'      => 'wrong-password',
+                'password'              => 'new-password',
                 'password_confirmation' => 'new-password',
             ]);
 

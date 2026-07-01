@@ -60,9 +60,9 @@ class MigrateBanksCommand extends Command
                     ->filter(fn ($bank) => filled($bank->display_name))
                     ->keyBy(fn ($bank) => $bank->display_name) // dedupe same name within the chunk
                     ->map(fn ($bank) => [
-                        'tenant_id' => $tenantId,
-                        'name' => $bank->display_name,
-                        'code' => null,
+                        'tenant_id'  => $tenantId,
+                        'name'       => $bank->display_name,
+                        'code'       => null,
                         'swift_code' => $bank->bic,
                         'created_at' => now(),
                         'updated_at' => now(),

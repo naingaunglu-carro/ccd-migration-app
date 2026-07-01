@@ -24,17 +24,17 @@ class SecurityController extends Controller
             /* @end-chisel-2fa */
             /* @chisel-passkeys */
             'canManagePasskeys' => Features::canManagePasskeys(),
-            'passkeys' => Features::canManagePasskeys()
+            'passkeys'          => Features::canManagePasskeys()
                 ? $request->user()
                     ->passkeys()
                     ->select(['id', 'name', 'credential', 'created_at', 'last_used_at'])
                     ->latest()
                     ->get()
                     ->map(fn ($passkey) => [
-                        'id' => $passkey->id,
-                        'name' => $passkey->name,
-                        'authenticator' => $passkey->authenticator,
-                        'created_at_diff' => $passkey->created_at->diffForHumans(),
+                        'id'                => $passkey->id,
+                        'name'              => $passkey->name,
+                        'authenticator'     => $passkey->authenticator,
+                        'created_at_diff'   => $passkey->created_at->diffForHumans(),
                         'last_used_at_diff' => $passkey->last_used_at?->diffForHumans(),
                     ])
                     ->values()
@@ -48,7 +48,7 @@ class SecurityController extends Controller
         if (Features::canManageTwoFactorAuthentication()) {
             $request->ensureStateIsValid();
 
-            $props['twoFactorEnabled'] = $request->user()->hasEnabledTwoFactorAuthentication();
+            $props['twoFactorEnabled']     = $request->user()->hasEnabledTwoFactorAuthentication();
             $props['requiresConfirmation'] = Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm');
         }
         /* @end-chisel-2fa */

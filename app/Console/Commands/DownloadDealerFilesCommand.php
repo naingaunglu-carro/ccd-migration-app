@@ -39,17 +39,17 @@ class DownloadDealerFilesCommand extends Command
 
     public function handle(DealerFileDownloadService $service): int
     {
-        $chunk = max(1, (int) $this->option('chunk'));
+        $chunk      = max(1, (int) $this->option('chunk'));
         $sourceDisk = (string) $this->option('source-disk');
         $targetDisk = (string) $this->option('target-disk');
-        $keyPrefix = (string) ($this->option('key-prefix') ?? '');
+        $keyPrefix  = (string) ($this->option('key-prefix') ?? '');
 
         $options = [
             'collection' => $this->option('collection'),
             'model_type' => $this->option('model-type'),
-            'file_name' => $this->option('file-name'),
-            'since' => $this->option('since'),
-            'overwrite' => (bool) $this->option('overwrite'),
+            'file_name'  => $this->option('file-name'),
+            'since'      => $this->option('since'),
+            'overwrite'  => (bool) $this->option('overwrite'),
         ];
 
         $min = $this->option('from-id') !== null
@@ -78,7 +78,7 @@ class DownloadDealerFilesCommand extends Command
             }
 
             $this->info("Dispatched {$slices} slice(s) to queue \"{$queue}\" (ids {$min}–{$max}, chunk {$chunk}).");
-            $this->line('Run workers to process: php artisan queue:work --queue='.$queue);
+            $this->line('Run workers to process: php artisan queue:work --queue=' . $queue);
 
             return self::SUCCESS;
         }
@@ -121,13 +121,13 @@ class DownloadDealerFilesCommand extends Command
     protected function humanBytes(int $bytes): string
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        $i = 0;
+        $i     = 0;
 
         while ($bytes >= 1024 && $i < count($units) - 1) {
             $bytes /= 1024;
             $i++;
         }
 
-        return round($bytes, 2).' '.$units[$i];
+        return round($bytes, 2) . ' ' . $units[$i];
     }
 }

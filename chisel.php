@@ -1,13 +1,14 @@
 <?php
 
-require getenv('LARAVEL_INSTALLER_AUTOLOADER') ?: __DIR__.'/vendor/autoload.php';
+require getenv('LARAVEL_INSTALLER_AUTOLOADER') ?: __DIR__ . '/vendor/autoload.php';
 
 use Laravel\Chisel\Chisel;
 use Laravel\Chisel\Question;
 use Laravel\Prompts\Support\Logger;
-use Symfony\Component\Process\Process;
 
 use function Laravel\Prompts\task;
+
+use Symfony\Component\Process\Process;
 
 function chiselRun(array $command, string $label): void
 {
@@ -27,7 +28,7 @@ function chiselRun(array $command, string $label): void
             }
 
             $logger->error(implode(' ', $command));
-            $logger->error('Error output: '.trim($process->getErrorOutput()));
+            $logger->error('Error output: ' . trim($process->getErrorOutput()));
             $logger->error('Chisel: Your project may be in a partially-modified state — review the output above before continuing.');
 
             return $process;
@@ -59,7 +60,7 @@ function chiselRun(array $command, string $label): void
  *     passkey_files: list<string>,
  *  } $paths
  */
-$paths = require __DIR__.'/chisel-paths.php';
+$paths = require __DIR__ . '/chisel-paths.php';
 
 return Chisel::script(__DIR__)
     ->questions([
@@ -67,10 +68,10 @@ return Chisel::script(__DIR__)
             name: 'auth_features',
             label: 'Which authentication features would you like to enable?',
             options: [
-                'email-verification' => 'Email verification',
-                'registration' => 'Registration',
-                '2fa' => 'Two-factor authentication',
-                'passkeys' => 'Passkeys',
+                'email-verification'    => 'Email verification',
+                'registration'          => 'Registration',
+                '2fa'                   => 'Two-factor authentication',
+                'passkeys'              => 'Passkeys',
                 'password-confirmation' => 'Password confirmation',
             ],
             default: ['email-verification', 'registration', '2fa', 'passkeys', 'password-confirmation'],

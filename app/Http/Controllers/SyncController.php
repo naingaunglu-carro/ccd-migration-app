@@ -25,31 +25,31 @@ class SyncController extends Controller
             ->orderBy('display_name')
             ->get()
             ->map(fn (SyncSource $source) => [
-                'id' => $source->id,
-                'display_name' => $source->display_name,
-                'group' => $source->group,
-                'connection' => $source->connection,
-                'query' => $source->query,
-                'target_table' => $source->target_table,
-                'resolver_class' => $source->resolver_class ? class_basename($source->resolver_class) : null,
+                'id'                 => $source->id,
+                'display_name'       => $source->display_name,
+                'group'              => $source->group,
+                'connection'         => $source->connection,
+                'query'              => $source->query,
+                'target_table'       => $source->target_table,
+                'resolver_class'     => $source->resolver_class ? class_basename($source->resolver_class) : null,
                 'last_downloaded_at' => $source->last_downloaded_at?->toIso8601String(),
-                'last_synced_at' => $source->last_synced_at?->toIso8601String(),
-                'downloads' => $source->downloads->map(fn (SyncDownload $d) => [
-                    'id' => $d->id,
-                    'status' => $d->status->value,
-                    'file_type' => $d->file_type,
-                    'file_name' => $d->file_name,
-                    'row_count' => $d->row_count,
-                    'file_size' => $d->file_size,
+                'last_synced_at'     => $source->last_synced_at?->toIso8601String(),
+                'downloads'          => $source->downloads->map(fn (SyncDownload $d) => [
+                    'id'            => $d->id,
+                    'status'        => $d->status->value,
+                    'file_type'     => $d->file_type,
+                    'file_name'     => $d->file_name,
+                    'row_count'     => $d->row_count,
+                    'file_size'     => $d->file_size,
                     'error_message' => $d->error_message,
-                    'created_at' => $d->created_at?->toIso8601String(),
+                    'created_at'    => $d->created_at?->toIso8601String(),
                     'latest_import' => $d->latestImport ? [
-                        'status' => $d->latestImport->status->value,
+                        'status'        => $d->latestImport->status->value,
                         'rows_inserted' => $d->latestImport->rows_inserted,
-                        'rows_updated' => $d->latestImport->rows_updated,
-                        'rows_skipped' => $d->latestImport->rows_skipped,
+                        'rows_updated'  => $d->latestImport->rows_updated,
+                        'rows_skipped'  => $d->latestImport->rows_skipped,
                         'error_message' => $d->latestImport->error_message,
-                        'finished_at' => $d->latestImport->finished_at?->toIso8601String(),
+                        'finished_at'   => $d->latestImport->finished_at?->toIso8601String(),
                     ] : null,
                 ]),
             ]);
@@ -69,15 +69,15 @@ class SyncController extends Controller
                 ProcessSyncDownload::dispatch($source)->onQueue($source->queue);
 
                 Inertia::flash('toast', [
-                    'type' => 'info',
+                    'type'    => 'info',
                     'message' => __('Download queued for :name on “:queue”.', [
-                        'name' => $source->display_name,
+                        'name'  => $source->display_name,
                         'queue' => $source->queue,
                     ]),
                 ]);
             } catch (\Throwable $e) {
                 Inertia::flash('toast', [
-                    'type' => 'error',
+                    'type'    => 'error',
                     'message' => __('Could not queue download: :error', ['error' => $e->getMessage()]),
                 ]);
             }
@@ -89,7 +89,7 @@ class SyncController extends Controller
             $download = $service->download($source);
 
             Inertia::flash('toast', [
-                'type' => 'success',
+                'type'    => 'success',
                 'message' => __(':name downloaded — :rows rows.', [
                     'name' => $source->display_name,
                     'rows' => $download->row_count,
@@ -97,7 +97,7 @@ class SyncController extends Controller
             ]);
         } catch (\Throwable $e) {
             Inertia::flash('toast', [
-                'type' => 'error',
+                'type'    => 'error',
                 'message' => __('Download failed: :error', ['error' => $e->getMessage()]),
             ]);
         }
@@ -120,15 +120,15 @@ class SyncController extends Controller
                 ProcessSyncImport::dispatch($download)->onQueue($source->queue);
 
                 Inertia::flash('toast', [
-                    'type' => 'info',
+                    'type'    => 'info',
                     'message' => __('Import queued for :name on “:queue”.', [
-                        'name' => $source->display_name,
+                        'name'  => $source->display_name,
                         'queue' => $source->queue,
                     ]),
                 ]);
             } catch (\Throwable $e) {
                 Inertia::flash('toast', [
-                    'type' => 'error',
+                    'type'    => 'error',
                     'message' => __('Could not queue import: :error', ['error' => $e->getMessage()]),
                 ]);
             }
@@ -140,16 +140,16 @@ class SyncController extends Controller
             $import = $service->import($download);
 
             Inertia::flash('toast', [
-                'type' => 'success',
+                'type'    => 'success',
                 'message' => __('Imported — :inserted new, :updated updated, :skipped skipped.', [
                     'inserted' => $import->rows_inserted,
-                    'updated' => $import->rows_updated,
-                    'skipped' => $import->rows_skipped,
+                    'updated'  => $import->rows_updated,
+                    'skipped'  => $import->rows_skipped,
                 ]),
             ]);
         } catch (\Throwable $e) {
             Inertia::flash('toast', [
-                'type' => 'error',
+                'type'    => 'error',
                 'message' => __('Import failed: :error', ['error' => $e->getMessage()]),
             ]);
         }

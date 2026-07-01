@@ -43,9 +43,9 @@ class ProcessSyncDownload implements ShouldQueue
             ->latest('id')
             ->first()
             ?->forceFill([
-                'status' => SyncStatus::FAILED,
+                'status'        => SyncStatus::FAILED,
                 'error_message' => $e?->getMessage() ?? 'Download job failed.',
-                'finished_at' => Carbon::now(),
+                'finished_at'   => Carbon::now(),
             ])->save();
     }
 }

@@ -56,17 +56,24 @@ class MigrateBanksCommand extends Command
             ->whereNull('deleted_at')
             ->orderBy('id')
             ->chunkById(500, function ($banks) use ($tenantId, &$migrated) {
-                $rows = $banks->map(fn ($bank) => [
-                    'tenant_id' => $tenantId,
-                    'name' => $bank->display_name,
-                    'code' => null,
-                    'swift_code' => $bank->bic,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ])->all();
+                $rows = $banks
+                    ->filter(fn ($bank) => filled($bank->display_name))
+                    ->keyBy(fn ($bank) => $bank->display_name) // dedupe same name within the chunk
+                    ->map(fn ($bank) => [
+                        'tenant_id' => $tenantId,
+                        'name' => $bank->display_name,
+                        'code' => null,
+                        'swift_code' => $bank->bic,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ])->values()->all();
 
-                DB::connection('ccd')->table('banks')->insert($rows);
-                $migrated += count($rows);
+                if ($rows !== []) {
+                    // create-or-update on (tenant_id, name); created_at preserved on conflict
+                    DB::connection('ccd')->table('banks')
+                        ->upsert($rows, ['tenant_id', 'name'], ['code', 'swift_code', 'updated_at']);
+                    $migrated += count($rows);
+                }
             }, 'id');
 
         $this->info("Done — migrated {$migrated} bank(s) into ccd_banks.");

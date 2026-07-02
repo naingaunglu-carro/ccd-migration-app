@@ -52,8 +52,22 @@ class MigratePartiesCommand extends Command
     /** dealer bank_id => ccd_banks.id (or null when no match) */
     private array $bankCache = [];
 
+    /** ccd table => [column => varchar length]; filled lazily from the schema */
+    private array $columnLimits = [];
+
     /** @var array<string, int> running counters */
     private array $stats = [];
+
+    /**
+     * Tokens that signal placeholder / junk free-text data rather than a real
+     * value. Used to reject fake national ids and fake contact points (both of
+     * which would otherwise collapse many unrelated parties onto one shared row).
+     */
+    private const PLACEHOLDER_TOKENS = [
+        'N/A', 'NA', 'NIL', 'NULL', 'NONE', 'NO', 'NOEMAIL', 'NO-EMAIL', 'NOMAIL',
+        'TEST', 'TESTING', 'ABC', 'ABC123', 'XXX', 'XXXX', 'ASDF', 'QWERTY',
+        'EXAMPLE', 'DUMMY', 'UNKNOWN', 'TBA', 'TBD', '0', '-',
+    ];
 
     public function handle(): int
     {
@@ -344,9 +358,15 @@ class MigratePartiesCommand extends Command
         $value = trim((string) $value);
 
         // Drop placeholders and anything without an alphanumeric core.
-        $placeholders = ['N/A', 'NA', 'NIL', 'NULL', 'NONE', '0', '-'];
-        if ($value === '' || in_array(strtoupper($value), $placeholders, true) || preg_replace('/[^a-z0-9]/i', '', $value) === '') {
+        if ($value === '' || in_array(strtoupper($value), self::PLACEHOLDER_TOKENS, true) || preg_replace('/[^a-z0-9]/i', '', $value) === '') {
             return null;
+        }
+
+        // Truncate to the column limit up front so the uniqueness check below
+        // matches the value that will actually be stored.
+        $limit = $this->limitsFor('parties')[$column] ?? null;
+        if ($limit !== null && mb_strlen($value) > $limit) {
+            $value = mb_substr($value, 0, $limit);
         }
 
         $taken = DB::connection('ccd')->table('parties')
@@ -393,6 +413,10 @@ class MigratePartiesCommand extends Command
             return;
         }
 
+        // raw_full is text (unbounded), so it keeps the complete address even
+        // when the varchar line/postcode columns get truncated to fit.
+        $rawFull = trim(implode(', ', array_filter([$line1, $line2, $postcode])));
+
         $this->createOrUpdate('addresses_raw',
             [
                 'tenant_id' => $this->tenantId,
@@ -400,6 +424,7 @@ class MigratePartiesCommand extends Command
                 'source_id' => (string) $identity['id'],
             ],
             [
+                'raw_full'     => $rawFull !== '' ? $rawFull : null,
                 'raw_line_1'   => $line1,
                 'raw_line_2'   => $line2,
                 'raw_postcode' => $postcode,
@@ -423,8 +448,10 @@ class MigratePartiesCommand extends Command
         ];
 
         foreach ($channels as $channel => $value) {
-            if (! filled($value)) {
-                continue;
+            $value = $this->cleanContact($channel, $value);
+
+            if ($value === null) {
+                continue; // empty or placeholder — don't create a shared junk contact point
             }
 
             $contactPointId = $this->createOrUpdate('contact_points',
@@ -437,6 +464,40 @@ class MigratePartiesCommand extends Command
                 ['tenant_id'        => $this->tenantId],
             );
         }
+    }
+
+    /**
+     * Normalise a contact value and reject obvious junk so we don't create a
+     * shared placeholder contact point that links unrelated parties together
+     * (e.g. noemail@gmail.com, 123@gmail.com, or a 3-digit "phone").
+     *
+     * Returns the cleaned value, or null when it should be skipped.
+     */
+    private function cleanContact(string $channel, ?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        if ($channel === 'email') {
+            // Must be a syntactically valid address…
+            if (! filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                return null;
+            }
+
+            // …with a local part that isn't a placeholder or all digits.
+            $local = strtoupper(explode('@', $value, 2)[0]);
+            if (ctype_digit($local) || in_array($local, self::PLACEHOLDER_TOKENS, true)) {
+                return null;
+            }
+
+            return strtolower($value);
+        }
+
+        // phone: keep original formatting but require a plausible number of digits.
+        return strlen(preg_replace('/\D/', '', $value)) >= 7 ? $value : null;
     }
 
     /**
@@ -526,6 +587,12 @@ class MigratePartiesCommand extends Command
     {
         $connection = DB::connection('ccd');
 
+        // Fit every string to its column length so oversized dealer data (long
+        // addresses, names, ids) can't blow up on a varchar limit. Keys are fit
+        // too, so the lookup and the insert agree on the stored value.
+        $keys   = $this->fitColumns($table, $keys);
+        $values = $this->fitColumns($table, $values);
+
         $existingId = $connection->table($table)->where($keys)->value('id');
 
         if ($existingId !== null) {
@@ -545,5 +612,53 @@ class MigratePartiesCommand extends Command
         $this->stats[$table] = ($this->stats[$table] ?? 0) + 1;
 
         return $id;
+    }
+
+    /**
+     * Truncate string values to their column's varchar length for the given
+     * ccd table. Non-string values and columns without a length are untouched.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function fitColumns(string $table, array $data): array
+    {
+        $limits = $this->limitsFor($table);
+
+        foreach ($data as $column => $value) {
+            if (is_string($value) && isset($limits[$column]) && mb_strlen($value) > $limits[$column]) {
+                $data[$column] = mb_substr($value, 0, $limits[$column]);
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * varchar length per column for a ccd table, read once from the schema.
+     *
+     * @return array<string, int>
+     */
+    private function limitsFor(string $table): array
+    {
+        if (isset($this->columnLimits[$table])) {
+            return $this->columnLimits[$table];
+        }
+
+        $rows = DB::connection('ccd')->select(
+            "select column_name, character_maximum_length as len
+               from information_schema.columns
+              where table_schema = 'public' and table_name = ? and data_type = 'character varying'",
+            ['ccd_' . $table], // the ccd connection is prefixed with ccd_
+        );
+
+        $map = [];
+        foreach ($rows as $row) {
+            if ($row->len !== null) {
+                $map[$row->column_name] = (int) $row->len;
+            }
+        }
+
+        return $this->columnLimits[$table] = $map;
     }
 }

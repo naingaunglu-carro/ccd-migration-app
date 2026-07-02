@@ -11,10 +11,14 @@ return [
     */
 
     'tenant_country' => [
-        1 => 49, // Malaysia
-        2 => 1, // Singapore
+        2 => 1,  // singapore
+        3 => 2,  // indonesia
+        4 => 3,  // thailand
+        5 => 32, // hong_kong
+        6 => 35, // japan
+        1 => 49, // malaysia
+        7 => 84, // taiwan
     ],
-
     /*
     |--------------------------------------------------------------------------
     | Polymorphic party types

@@ -619,6 +619,7 @@ class MigratePartiesCommand extends Command
      * ccd table. Non-string values and columns without a length are untouched.
      *
      * @param  array<string, mixed>  $data
+     *
      * @return array<string, mixed>
      */
     private function fitColumns(string $table, array $data): array

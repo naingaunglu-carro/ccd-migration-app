@@ -176,7 +176,7 @@ class SyncDownloadService
                 $rows += $partRows;
                 $bytes += $partBytes;
                 $first = false;
-                $from = $to;
+                $from  = $to;
             }
         } finally {
             fclose($main);
@@ -349,7 +349,7 @@ class SyncDownloadService
             // otherwise open a fresh WHERE. Prevents a double-WHERE when the
             // source query carries its own filter (e.g. model_type/date bounds).
             $connector = preg_match('/\bwhere\b/i', $select) ? 'and' : 'where';
-            $where = " {$connector} {$key} > {$value}";
+            $where     = " {$connector} {$key} > {$value}";
         }
 
         return "{$select}{$where} order by {$key} asc limit {$chunk}";

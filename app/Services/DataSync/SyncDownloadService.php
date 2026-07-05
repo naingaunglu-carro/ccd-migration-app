@@ -271,7 +271,11 @@ class SyncDownloadService
 
         if ($cursor !== null) {
             $value = is_numeric($cursor) ? $cursor : "'" . str_replace("'", "''", $cursor) . "'";
-            $where = " where {$key} > {$value}";
+            // Extend the base query's WHERE with AND when it already filters,
+            // otherwise open a fresh WHERE. Prevents a double-WHERE when the
+            // source query carries its own filter (e.g. model_type/date bounds).
+            $connector = preg_match('/\bwhere\b/i', $select) ? 'and' : 'where';
+            $where = " {$connector} {$key} > {$value}";
         }
 
         return "{$select}{$where} order by {$key} asc limit {$chunk}";

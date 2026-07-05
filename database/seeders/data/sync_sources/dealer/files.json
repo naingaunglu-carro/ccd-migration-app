@@ -4,11 +4,11 @@
         "name": "dealer.files",
         "display_name": "Dealer Files",
         "connection": "dealer",
-        "query": "SELECT id, uuid, slug, model_id, model_type, collection_name, name, file_name, mime_type, disk, conversions_disk, size, original_size, manipulations, custom_properties, order_column, is_optimized, lark_code, created_at, updated_at, deleted_at, responsive_images, generated_conversions FROM files;",
+        "query": "SELECT id, uuid, slug, model_id, model_type, collection_name, name, file_name, mime_type, disk, conversions_disk, size, original_size, manipulations, custom_properties, order_column, is_optimized, lark_code, created_at, updated_at, deleted_at, responsive_images, generated_conversions FROM files WHERE model_type = 'App\\\\Modules\\\\Transaction\\\\Models\\\\Transaction' AND created_at >= NOW() - INTERVAL 5 YEAR AND id > 306776425",
         "target_table": "dealer_files",
         "resolver_class": "",
         "queue": "sync-imports",
-        "chunk_size": 100000,
+        "chunk_size": 10000,
         "folder_path": "files",
         "file_name": "dealer_files_{{date}}"
     }

@@ -129,6 +129,25 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        // Live dealer database (prod MySQL/RDS). Read-only lookups for data that
+        // isn't part of the local synced subset, e.g. a transaction's type.
+        'dealer' => [
+            'driver'         => 'mysql',
+            'host'           => env('DEALER_DB_HOST'),
+            'port'           => env('DEALER_DB_PORT', '3306'),
+            'database'       => env('DEALER_DB_DATABASE', 'dealer'),
+            'username'       => env('DEALER_DB_USERNAME'),
+            'password'       => env('DEALER_DB_PASSWORD'),
+            'charset'        => 'utf8mb4',
+            'collation'      => 'utf8mb4_unicode_ci',
+            'prefix'         => '',
+            'prefix_indexes' => true,
+            'options'        => extension_loaded('pdo_mysql') ? array_filter([
+                // RDS enforces TLS; enable it without needing a bundled CA file.
+                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
+            ]) : [],
+        ],
+
     ],
 
     /*

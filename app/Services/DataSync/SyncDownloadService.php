@@ -116,16 +116,90 @@ class SyncDownloadService
     }
 
     /**
-     * Keyset-paginated export: pull the table in chunks of `WHERE key > cursor
-     * ORDER BY key LIMIT n`, appending each chunk into a single file. Each chunk
-     * is a fast PK-index range scan on a fresh connection, so it never trips the
-     * server's max_execution_time the way one giant SELECT does.
+     * Chunked export dispatcher.
+     *
+     * Prefers a bounded id-window sweep (each query scans a fixed PK range, so a
+     * heavily-filtered source on a huge table can never runaway-scan and trip the
+     * server's max_execution_time). Falls back to keyset pagination when the key
+     * range can't be resolved as a numeric span (e.g. a non-numeric key).
      *
      * @param  array<string, mixed>  $conn
      *
      * @return array{size: int, row_count: int, checksum: string|null}
      */
     protected function runChunked(array $conn, string $select, string $path, string $key, int $chunk, bool $isCsv): array
+    {
+        [$min, $max] = $this->keyRange($conn, $select, $key);
+
+        if ($min === null || $max === null || ! is_numeric($min) || ! is_numeric($max)) {
+            return $this->runKeyset($conn, $select, $path, $key, $chunk, $isCsv);
+        }
+
+        return $this->runWindowed($conn, $select, $path, $key, $chunk, $isCsv, (int) $min, (int) $max);
+    }
+
+    /**
+     * Bounded id-window export: sweep the key space in fixed windows of
+     * `key > from AND key <= from + chunk`, advancing by the window width
+     * regardless of how many rows match. Because the range is capped on both
+     * sides, every query is a bounded PK scan — safe even when the filter matches
+     * only a sparse subset of a very large table (where keyset + LIMIT would scan
+     * unbounded looking for enough matches).
+     *
+     * @param  array<string, mixed>  $conn
+     *
+     * @return array{size: int, row_count: int, checksum: string|null}
+     */
+    protected function runWindowed(array $conn, string $select, string $path, string $key, int $chunk, bool $isCsv, int $min, int $max): array
+    {
+        $main = fopen($path, 'wb');
+
+        if ($main === false) {
+            throw new RuntimeException("Unable to open output file: {$path}");
+        }
+
+        $hash     = hash_init('sha256');
+        $keyIndex = $this->keyIndexFromSelect($select, $key);
+        $tmp      = $path . '.part';
+        $bytes    = 0;
+        $rows     = 0;
+        $from     = $min - 1; // the lowest matching row has key = min
+        $first    = true;
+
+        try {
+            while ($from < $max) {
+                $to = $from + $chunk;
+                $this->stream($conn, $this->windowSql($select, $key, $from, $to), $tmp);
+
+                [$partRows, , $partBytes] = $this->appendChunk($tmp, $main, $hash, $isCsv, $keyIndex, $first);
+
+                $rows += $partRows;
+                $bytes += $partBytes;
+                $first = false;
+                $from = $to;
+            }
+        } finally {
+            fclose($main);
+            @unlink($tmp);
+        }
+
+        return [
+            'size'      => $bytes,
+            'row_count' => $rows,
+            'checksum'  => $rows > 0 ? hash_final($hash) : null,
+        ];
+    }
+
+    /**
+     * Keyset-paginated export: pull the table in chunks of `WHERE key > cursor
+     * ORDER BY key LIMIT n`, appending each chunk into a single file. Used as a
+     * fallback for sources whose key can't be swept as a numeric window.
+     *
+     * @param  array<string, mixed>  $conn
+     *
+     * @return array{size: int, row_count: int, checksum: string|null}
+     */
+    protected function runKeyset(array $conn, string $select, string $path, string $key, int $chunk, bool $isCsv): array
     {
         $main = fopen($path, 'wb');
 
@@ -279,6 +353,67 @@ class SyncDownloadService
         }
 
         return "{$select}{$where} order by {$key} asc limit {$chunk}";
+    }
+
+    /**
+     * Build a bounded id-window query: base filter + `key > from AND key <= to`.
+     * Extends an existing WHERE with AND, otherwise opens a fresh WHERE.
+     */
+    protected function windowSql(string $select, string $key, int $from, int $to): string
+    {
+        $connector = preg_match('/\bwhere\b/i', $select) ? 'and' : 'where';
+
+        return "{$select} {$connector} {$key} > {$from} and {$key} <= {$to} order by {$key} asc";
+    }
+
+    /**
+     * Resolve MIN/MAX of the key over the source's own filter, reusing the base
+     * query's FROM + WHERE. Returns [null, null] when it can't be parsed or the
+     * filtered set is empty, so the caller can fall back to keyset pagination.
+     *
+     * @param  array<string, mixed>  $conn
+     *
+     * @return array{0: ?string, 1: ?string}
+     */
+    protected function keyRange(array $conn, string $select, string $key): array
+    {
+        // Everything after the first FROM is "<table> [WHERE ...]" — the base
+        // query carries no ORDER BY/LIMIT (those are added per chunk).
+        if (! preg_match('/\sfrom\s+(.+)$/is', $select, $matches)) {
+            return [null, null];
+        }
+
+        $fromClause = trim($matches[1]);
+
+        return [
+            $this->scalar($conn, "select min({$key}) from {$fromClause}"),
+            $this->scalar($conn, "select max({$key}) from {$fromClause}"),
+        ];
+    }
+
+    /**
+     * Run a query that returns a single scalar and return it (null when empty).
+     *
+     * @param  array<string, mixed>  $conn
+     */
+    protected function scalar(array $conn, string $sql): ?string
+    {
+        $process = new Process($this->command($sql, $conn), timeout: null, env: $this->env($conn));
+        $process->run();
+
+        if (! $process->isSuccessful()) {
+            throw new RuntimeException(
+                "{$conn['driver']} query failed: " . trim($process->getErrorOutput() ?: $process->getOutput())
+            );
+        }
+
+        // First line is the column header; the value is on the second line.
+        $lines = preg_split('/\r?\n/', trim($process->getOutput()));
+        $value = $lines[1] ?? null;
+
+        return ($value === null || $value === '' || $value === 'NULL' || $value === '\N')
+            ? null
+            : trim($value);
     }
 
     /**

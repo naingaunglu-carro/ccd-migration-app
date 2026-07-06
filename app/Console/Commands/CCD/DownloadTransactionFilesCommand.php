@@ -8,7 +8,7 @@ use RuntimeException;
 use Symfony\Component\Process\Process;
 
 /**
- * Export dealer `files` rows for a batch of transactions into a single TSV.
+ * Export dealer `files` rows for a batch of transactions into TSV file(s).
  *
  * Walks local dealer_transactions (latest first, optionally filtered by
  * country, optionally capped by --limit), then queries the remote dealer DB's
@@ -17,8 +17,11 @@ use Symfony\Component\Process\Process;
  *   model_type = App\Modules\Transaction\Models\Transaction
  *   model_id   IN (the batch of transaction ids)
  * Transaction ids are split into --transaction-batch-sized IN() lists so each
- * remote query stays bounded; every batch's rows are appended into the same
- * output file (single TSV, header written once).
+ * remote query stays bounded. Rows are written into rotating batch files
+ * (dealer_files_batch_1.tsv, _2.tsv, …) under
+ * storage/app/raw_data/files/{country|all}/{date}/, capped at --max-rows data
+ * rows per file (header repeated in each file) so no single TSV grows
+ * unbounded.
  */
 class DownloadTransactionFilesCommand extends Command
 {
@@ -26,15 +29,16 @@ class DownloadTransactionFilesCommand extends Command
      * @var string
      */
     protected $signature = 'ccd:download-transaction-files
-        {--country= : Only dealer_transactions with this country_id}
+        {--country= : Only dealer_transactions for this dealer_countries.id or .country_code (e.g. 49 or my)}
         {--limit= : Max dealer_transactions to include (latest first); all when omitted}
         {--transaction-batch=500 : Transaction ids per remote files query}
-        {--dest= : Output TSV path (default storage/app/raw_data/files/{timestamp}.tsv)}';
+        {--max-rows=100000 : Max data rows per TSV file before rotating to a new batch file}
+        {--dest= : Output directory for batch TSVs (default storage/app/raw_data/files/[country|all]/date)}';
 
     /**
      * @var string
      */
-    protected $description = 'Download dealer `files` rows for transactions (by country/latest/limit) into one TSV';
+    protected $description = 'Download dealer `files` rows for transactions (by country/latest/limit) into batch TSV files';
 
     private const TRANSACTION_MODEL = 'App\Modules\Transaction\Models\Transaction';
 
@@ -47,25 +51,48 @@ class DownloadTransactionFilesCommand extends Command
 
     public function handle(): int
     {
-        $country = $this->option('country') !== null ? (int) $this->option('country') : null;
-        $limit   = $this->option('limit') !== null ? (int) $this->option('limit') : null;
-        $batch   = max(1, (int) $this->option('transaction-batch'));
+        $countryOpt = $this->option('country') !== null ? trim((string) $this->option('country')) : null;
+        $limit      = $this->option('limit') !== null ? (int) $this->option('limit') : null;
+        $batch      = max(1, (int) $this->option('transaction-batch'));
+
+        $countryId   = null;
+        $countryCode = null;
+
+        if ($countryOpt !== null) {
+            // Accept either a numeric dealer_countries.id (back-compat with
+            // ccd:queue-file-ocr's --country) or a country_code like "my".
+            $country = ctype_digit($countryOpt)
+                ? DB::table('dealer_countries')->where('id', (int) $countryOpt)->first()
+                : DB::table('dealer_countries')->where('country_code', strtoupper($countryOpt))->first();
+
+            if ($country === null) {
+                $this->error("Unknown dealer_countries entry: {$countryOpt}");
+
+                return self::FAILURE;
+            }
+
+            $countryId   = $country->id;
+            $countryCode = strtolower((string) $country->country_code);
+        }
 
         $ids = DB::table('dealer_transactions')
-            ->when($country !== null, fn ($q) => $q->where('country_id', $country))
+            ->when($countryId !== null, fn ($q) => $q->where('country_id', $countryId))
             ->orderByDesc('created_at')
             ->when($limit !== null, fn ($q) => $q->limit($limit))
             ->pluck('id');
 
         if ($ids->isEmpty()) {
             $this->info('No dealer_transactions match'
-                . ($country !== null ? " country #{$country}." : '.'));
+                . ($countryCode !== null ? " country [{$countryCode}]." : '.'));
 
             return self::SUCCESS;
         }
 
-        $dest = $this->option('dest') ?: storage_path('app/raw_data/files/' . now()->format('Ymd_His') . '.tsv');
-        $dir  = dirname($dest);
+        $maxRows = $this->option('max-rows') !== null ? max(1, (int) $this->option('max-rows')) : null;
+
+        $countryFolder = $countryCode ?? 'all';
+        $dateFolder    = now()->format('Ymd');
+        $dir           = $this->option('dest') ?: storage_path("app/raw_data/files/{$countryFolder}/{$dateFolder}");
 
         if (! is_dir($dir)) {
             mkdir($dir, 0775, true);
@@ -80,44 +107,41 @@ class DownloadTransactionFilesCommand extends Command
         }
 
         $this->info(sprintf(
-            'Exporting files for %d transaction(s)%s in batches of %d → %s',
+            'Exporting files for %d transaction(s)%s in batches of %d (max %s row(s)/file) → %s',
             $ids->count(),
-            $country !== null ? " (country #{$country})" : '',
+            $countryCode !== null ? " (country [{$countryCode}])" : '',
             $batch,
-            $dest,
+            $maxRows !== null ? (string) $maxRows : 'unlimited',
+            $dir,
         ));
 
-        $main = fopen($dest, 'wb');
-
-        if ($main === false) {
-            $this->error("Unable to open output file: {$dest}");
-
-            return self::FAILURE;
-        }
+        $writer = new TsvBatchWriter($dir, $maxRows);
 
         $chunks = $ids->chunk($batch);
         $bar    = $this->output->createProgressBar($chunks->count());
         $bar->start();
 
-        $tmp    = $dest . '.part';
-        $rows   = 0;
-        $first  = true;
+        $tmp = $dir . '/.batch.part';
 
         try {
             foreach ($chunks as $chunk) {
                 $this->stream($conn, $this->selectSql($chunk->all()), $tmp);
-                $rows += $this->appendChunk($tmp, $main, $first);
-                $first = false;
+                $this->appendChunk($tmp, $writer);
                 $bar->advance();
             }
         } finally {
-            fclose($main);
+            $writer->close();
             @unlink($tmp);
         }
 
         $bar->finish();
         $this->newLine(2);
-        $this->info("Done. {$rows} file row(s) exported → {$dest}");
+        $this->info(sprintf(
+            'Done. %d file row(s) exported across %d batch file(s) → %s',
+            $writer->totalRows(),
+            $writer->fileCount(),
+            $dir,
+        ));
 
         return self::SUCCESS;
     }
@@ -132,8 +156,14 @@ class DownloadTransactionFilesCommand extends Command
         $columns = implode(', ', self::COLUMNS);
         $inList  = implode(',', array_map('intval', $ids));
 
+        // Escape backslashes (and quotes) for MySQL's string-literal parser —
+        // otherwise "\M"/"\T" in the class name are treated as (unrecognized)
+        // escape sequences and MySQL silently drops the backslashes, so the
+        // WHERE clause never matches and the export comes back empty.
+        $modelType = addcslashes(self::TRANSACTION_MODEL, "\\'");
+
         return "SELECT {$columns} FROM files"
-            . " WHERE model_type = '" . self::TRANSACTION_MODEL . "'"
+            . " WHERE model_type = '{$modelType}'"
             . " AND model_id IN ({$inList})";
     }
 
@@ -182,19 +212,16 @@ class DownloadTransactionFilesCommand extends Command
     }
 
     /**
-     * Append a batch's data rows into the combined file (header only once).
-     *
-     * @param  resource  $main
+     * Feed one batch's data rows into the rotating writer (header cached once).
      */
-    private function appendChunk(string $tmp, $main, bool $withHeader): int
+    private function appendChunk(string $tmp, TsvBatchWriter $writer): void
     {
         $in = fopen($tmp, 'rb');
 
         if ($in === false) {
-            return 0;
+            return;
         }
 
-        $rows   = 0;
         $lineNo = 0;
 
         try {
@@ -202,9 +229,7 @@ class DownloadTransactionFilesCommand extends Command
                 $lineNo++;
 
                 if ($lineNo === 1) {
-                    if ($withHeader) {
-                        fwrite($main, $line);
-                    }
+                    $writer->setHeader($line);
 
                     continue;
                 }
@@ -213,13 +238,100 @@ class DownloadTransactionFilesCommand extends Command
                     continue;
                 }
 
-                fwrite($main, $line);
-                $rows++;
+                $writer->writeRow($line);
             }
         } finally {
             fclose($in);
         }
+    }
+}
 
-        return $rows;
+/**
+ * Writes data rows into rotating "dealer_files_batch_{n}.tsv" files inside a
+ * directory, starting a new file (with the header repeated) once --max-rows
+ * data rows have been written to the current one.
+ */
+class TsvBatchWriter
+{
+    private int $batchNum = 0;
+
+    /** @var resource|null */
+    private $handle = null;
+
+    private ?string $header = null;
+
+    private int $rowsInFile = 0;
+
+    private int $totalRows = 0;
+
+    /** @var array<int, string> */
+    private array $paths = [];
+
+    public function __construct(private readonly string $dir, private readonly ?int $maxRows)
+    {
+    }
+
+    public function setHeader(string $line): void
+    {
+        $this->header ??= $line;
+    }
+
+    public function writeRow(string $line): void
+    {
+        if ($this->handle === null || ($this->maxRows !== null && $this->rowsInFile >= $this->maxRows)) {
+            $this->rotate();
+        }
+
+        fwrite($this->handle, $line);
+        $this->rowsInFile++;
+        $this->totalRows++;
+    }
+
+    public function totalRows(): int
+    {
+        return $this->totalRows;
+    }
+
+    public function fileCount(): int
+    {
+        return count($this->paths);
+    }
+
+    public function close(): void
+    {
+        if ($this->handle === null && $this->header !== null && $this->paths === []) {
+            $this->rotate();
+        }
+
+        $this->closeHandle();
+    }
+
+    private function closeHandle(): void
+    {
+        if ($this->handle !== null) {
+            fclose($this->handle);
+            $this->handle = null;
+        }
+    }
+
+    private function rotate(): void
+    {
+        $this->closeHandle();
+
+        $this->batchNum++;
+        $path   = $this->dir . "/dealer_files_batch_{$this->batchNum}.tsv";
+        $handle = fopen($path, 'wb');
+
+        if ($handle === false) {
+            throw new RuntimeException("Unable to open output file: {$path}");
+        }
+
+        $this->handle       = $handle;
+        $this->paths[]      = $path;
+        $this->rowsInFile   = 0;
+
+        if ($this->header !== null) {
+            fwrite($this->handle, $this->header);
+        }
     }
 }

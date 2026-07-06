@@ -34,7 +34,10 @@ class SyncDownloadService
             [$absolute, $name] = $this->resolvePath($source, $download, $fileType);
 
             $metrics = $source->chunk_size
-                ? $this->runChunked($conn, $select, $absolute, $source->key_column ?: 'id', (int) $source->chunk_size, $fileType === 'csv')
+                ? $this->runChunked(
+                    $conn, $select, $absolute, $source->key_column ?: 'id', (int) $source->chunk_size, $fileType === 'csv',
+                    $source->key_min, $source->key_max,
+                )
                 : $this->run($conn, $select, $absolute);
 
             $download->forceFill([
@@ -123,13 +126,27 @@ class SyncDownloadService
      * server's max_execution_time). Falls back to keyset pagination when the key
      * range can't be resolved as a numeric span (e.g. a non-numeric key).
      *
+     * When the source configures an explicit key_min/key_max, that is used as-is
+     * and the MIN(key)/MAX(key) lookup is skipped entirely — on a huge table a
+     * filtered aggregate can be as expensive as the export itself and can trip
+     * the same max_execution_time the windowed sweep exists to avoid.
+     *
      * @param  array<string, mixed>  $conn
      *
      * @return array{size: int, row_count: int, checksum: string|null}
      */
-    protected function runChunked(array $conn, string $select, string $path, string $key, int $chunk, bool $isCsv): array
-    {
-        [$min, $max] = $this->keyRange($conn, $select, $key);
+    protected function runChunked(
+        array $conn, string $select, string $path, string $key, int $chunk, bool $isCsv,
+        ?string $minOverride = null, ?string $maxOverride = null,
+    ): array {
+        $min = $minOverride;
+        $max = $maxOverride;
+
+        if ($min === null || $max === null) {
+            [$rangeMin, $rangeMax] = $this->keyRange($conn, $select, $key);
+            $min ??= $rangeMin;
+            $max ??= $rangeMax;
+        }
 
         if ($min === null || $max === null || ! is_numeric($min) || ! is_numeric($max)) {
             return $this->runKeyset($conn, $select, $path, $key, $chunk, $isCsv);
@@ -140,11 +157,14 @@ class SyncDownloadService
 
     /**
      * Bounded id-window export: sweep the key space in fixed windows of
-     * `key > from AND key <= from + chunk`, advancing by the window width
-     * regardless of how many rows match. Because the range is capped on both
-     * sides, every query is a bounded PK scan — safe even when the filter matches
-     * only a sparse subset of a very large table (where keyset + LIMIT would scan
-     * unbounded looking for enough matches).
+     * `key > from AND key <= to`, walking backward from max to min one window
+     * width at a time regardless of how many rows match. Because the range is
+     * capped on both sides, every query is a bounded PK scan — safe even when
+     * the filter matches only a sparse subset of a very large table (where
+     * keyset + LIMIT would scan unbounded looking for enough matches).
+     *
+     * Sweeps newest-to-oldest (from `max` down to `min`) so the most recent —
+     * and typically most relevant — rows land first.
      *
      * @param  array<string, mixed>  $conn
      *
@@ -163,12 +183,12 @@ class SyncDownloadService
         $tmp      = $path . '.part';
         $bytes    = 0;
         $rows     = 0;
-        $from     = $min - 1; // the lowest matching row has key = min
+        $to       = $max;
         $first    = true;
 
         try {
-            while ($from < $max) {
-                $to = $from + $chunk;
+            while ($to > $min) {
+                $from = max($min, $to - $chunk);
                 $this->stream($conn, $this->windowSql($select, $key, $from, $to), $tmp);
 
                 [$partRows, , $partBytes] = $this->appendChunk($tmp, $main, $hash, $isCsv, $keyIndex, $first);
@@ -176,7 +196,7 @@ class SyncDownloadService
                 $rows += $partRows;
                 $bytes += $partBytes;
                 $first = false;
-                $from  = $to;
+                $to    = $from;
             }
         } finally {
             fclose($main);

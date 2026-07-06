@@ -23,6 +23,8 @@ use InvalidArgumentException;
  * @property string|null $queue
  * @property int|null $chunk_size
  * @property string|null $key_column
+ * @property string|null $key_min
+ * @property string|null $key_max
  * @property string|null $folder_path
  * @property string|null $file_name
  * @property Carbon|null $last_downloaded_at
@@ -41,6 +43,8 @@ use InvalidArgumentException;
     'queue',
     'chunk_size',
     'key_column',
+    'key_min',
+    'key_max',
     'folder_path',
     'file_name',
     'last_downloaded_at',

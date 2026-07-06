@@ -8,7 +8,9 @@
         "target_table": "dealer_files",
         "resolver_class": "",
         "queue": "sync-imports",
-        "chunk_size": 5000,
+        "chunk_size": 50000,
+        "key_min": "0",
+        "key_max": "320000000",
         "folder_path": "files",
         "file_name": "dealer_files_{{date}}"
     }

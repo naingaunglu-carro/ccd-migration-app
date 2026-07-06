@@ -7,12 +7,17 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Create or update dealer_files rows from a TSV produced by
+ * Create or update dealer_files rows from TSV(s) produced by
  * ccd:download-transaction-files.
  *
- * Streams the file and upserts by `id` in fixed-size batches, so memory stays
- * flat regardless of file size. `tag_name` isn't part of the exported columns
- * — it's derived per row from custom_properties.document_default_tag_name.
+ * Accepts either a single TSV file or a folder of them (e.g. the
+ * {country}/{date}/ directory of dealer_files_batch_*.tsv files that
+ * ccd:download-transaction-files writes) — folders are imported file by file,
+ * in natural filename order, so batch_2 runs before batch_10.
+ *
+ * Streams each file and upserts by `id` in fixed-size batches, so memory
+ * stays flat regardless of file size. `tag_name` isn't part of the exported
+ * columns — it's derived per row from custom_properties.document_default_tag_name.
  */
 class ImportTransactionFilesCommand extends Command
 {
@@ -20,22 +25,30 @@ class ImportTransactionFilesCommand extends Command
      * @var string
      */
     protected $signature = 'ccd:import-transaction-files
-        {file : Path to the TSV produced by ccd:download-transaction-files}
+        {path : Path to a TSV produced by ccd:download-transaction-files, or a folder of them}
         {--chunk=1000 : Rows per upsert batch}';
 
     /**
      * @var string
      */
-    protected $description = 'Create or update dealer_files rows from a TSV exported by ccd:download-transaction-files';
+    protected $description = 'Create or update dealer_files rows from TSV(s) exported by ccd:download-transaction-files';
 
     private const TABLE = 'dealer_files';
 
     public function handle(): int
     {
-        $path = $this->argument('file');
+        $path = $this->argument('path');
 
-        if (! is_file($path)) {
-            $this->error("File not found: {$path}");
+        $files = $this->resolveFiles($path);
+
+        if ($files === null) {
+            $this->error("Path not found: {$path}");
+
+            return self::FAILURE;
+        }
+
+        if ($files === []) {
+            $this->error("No .tsv files found in: {$path}");
 
             return self::FAILURE;
         }
@@ -47,15 +60,70 @@ class ImportTransactionFilesCommand extends Command
             fn ($column) => in_array($column, $columns, true),
         ));
 
+        $before      = DB::table(self::TABLE)->count();
+        $totalRead    = 0;
+        $totalSkipped = 0;
+
+        foreach ($files as $file) {
+            if (count($files) > 1) {
+                $this->info("Importing {$file}…");
+            }
+
+            [$read, $skipped] = $this->importFile($file, $chunkSize, $columns, $stamps);
+
+            $totalRead    += $read;
+            $totalSkipped += $skipped;
+        }
+
+        $inserted = max(0, DB::table(self::TABLE)->count() - $before);
+        $updated  = max(0, ($totalRead - $totalSkipped) - $inserted);
+
+        $this->info("Done. {$totalRead} read, {$inserted} inserted, {$updated} updated, {$totalSkipped} skipped across " . count($files) . ' file(s).');
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Resolve the given path into an ordered list of TSV files.
+     *
+     * Null means the path doesn't exist; an empty array means it's a folder
+     * with no .tsv files in it.
+     *
+     * @return list<string>|null
+     */
+    private function resolveFiles(string $path): ?array
+    {
+        if (is_file($path)) {
+            return [$path];
+        }
+
+        if (! is_dir($path)) {
+            return null;
+        }
+
+        $files = glob(rtrim($path, '/') . '/*.tsv') ?: [];
+        natsort($files);
+
+        return array_values($files);
+    }
+
+    /**
+     * Stream one TSV file and upsert its rows in batches.
+     *
+     * @param  list<string>  $columns
+     * @param  list<string>  $stamps
+     * @return array{0: int, 1: int} [read, skipped]
+     */
+    private function importFile(string $path, int $chunkSize, array $columns, array $stamps): array
+    {
         $handle = fopen($path, 'rb');
 
         if ($handle === false) {
             $this->error("Unable to read file: {$path}");
 
-            return self::FAILURE;
+            return [0, 0];
         }
 
-        $before  = DB::table(self::TABLE)->count();
         $headers = null;
         $width   = null;
         $idIndex = false;
@@ -120,12 +188,7 @@ class ImportTransactionFilesCommand extends Command
             fclose($handle);
         }
 
-        $inserted = max(0, DB::table(self::TABLE)->count() - $before);
-        $updated  = max(0, ($read - $skipped) - $inserted);
-
-        $this->info("Done. {$read} read, {$inserted} inserted, {$updated} updated, {$skipped} skipped.");
-
-        return self::SUCCESS;
+        return [$read, $skipped];
     }
 
     /**

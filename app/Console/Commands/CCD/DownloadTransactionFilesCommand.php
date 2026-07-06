@@ -44,9 +44,9 @@ class DownloadTransactionFilesCommand extends Command
 
     private const COLUMNS = [
         'id', 'uuid', 'slug', 'model_id', 'model_type', 'collection_name', 'name', 'file_name',
-        'mime_type', 'disk', 'conversions_disk', 'size', 'original_size', 'manipulations',
-        'custom_properties', 'order_column', 'is_optimized', 'lark_code', 'created_at',
-        'updated_at', 'deleted_at', 'responsive_images', 'generated_conversions',
+        'mime_type', 'disk', 'conversions_disk', 'size', 'original_size',
+        'custom_properties', 'order_column', 'created_at',
+        'updated_at', 'deleted_at'
     ];
 
     public function handle(): int

@@ -17,6 +17,21 @@ use Symfony\Component\Process\Process;
  * AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_SESSION_TOKEN before running.
  *
  * S3 object keys follow Spatie Media Library's "{id}/{file_name}" layout.
+ *
+ * Resumable: after a run that completes cleanly (exit 0 — no failed/denied
+ * objects), the (model_id, id) of the last row processed is written to a
+ * checkpoint file next to --dest. Since rows are walked latest-transaction
+ * first, the next plain re-run automatically picks up only what's older than
+ * that checkpoint instead of re-listing/re-matching everything again. Pass
+ * --restart to ignore the checkpoint and do a full pass.
+ *
+ * --retries (default 2) re-invokes the python script in place against the
+ * same manifest if it exits non-zero (already-downloaded files are
+ * fast-skipped, so a retry only redoes what actually failed/was denied).
+ * Every attempt — success or failure — is appended as one JSON line to
+ * --status-log (default storage/logs/dealer-download-status.jsonl) so run
+ * history (matched count, ok/skip/missing/denied/failed, exit code) survives
+ * across invocations.
  */
 class DownloadTaggedFilesCommand extends Command
 {
@@ -32,6 +47,10 @@ class DownloadTaggedFilesCommand extends Command
         {--concurrency=8 : Parallel downloads}
         {--overwrite : Re-download even if the local file already exists}
         {--dry-run : Plan only — build the manifest but do not download}
+        {--restart : Ignore any saved checkpoint and do a full pass from the latest transaction}
+        {--before= : Only files with created_at before this date/month (e.g. 2025-12 or 2025-12-01) — for continuing a run done before the checkpoint existed}
+        {--retries=2 : Re-run the download in place up to N times if it exits non-zero}
+        {--status-log= : Path to append JSON-lines run status to (default storage/logs/dealer-download-status.jsonl)}
         {--python= : Path to the venv python (default: .venv/bin/python)}';
 
     /**
@@ -82,39 +101,68 @@ class DownloadTaggedFilesCommand extends Command
             $query->where('disk', $disk);
         }
 
+        if ($before = $this->option('before')) {
+            try {
+                $beforeDate = Carbon::parse($before)->startOfDay();
+            } catch (\Exception) {
+                $this->error("Invalid --before date: {$before}");
+
+                return self::FAILURE;
+            }
+
+            $query->where('created_at', '<', $beforeDate);
+        }
+
+        $checkpointPath = rtrim($dest, '/') . '/.dealer-files-checkpoint';
+        $checkpoint     = $this->option('restart') ? null : $this->readCheckpoint($checkpointPath);
+
+        if ($checkpoint !== null) {
+            // Rows are walked latest-transaction first (model_id, id both
+            // descending) — only fetch what's older than the last row a
+            // clean run finished on.
+            $query->whereRaw('(model_id, id) < (?, ?)', [$checkpoint['model_id'], $checkpoint['id']]);
+        }
+
         $count = (clone $query)->count();
 
         if ($count === 0) {
             $this->info("No dealer_files rows match tags [{$tags->implode(', ')}]"
-                . ($disk ? " on disk {$disk}." : '.'));
+                . ($disk ? " on disk {$disk}" : '')
+                . ($checkpoint !== null ? ' older than the saved checkpoint' : '')
+                . '.');
 
             return self::SUCCESS;
         }
 
-        // Write the S3 keys ("{key}\t{disk}") to a manifest, chunked so memory
-        // stays flat regardless of how many rows match.
+        // Write the S3 keys ("{key}\t{disk}") to a manifest via a cursor, so
+        // memory stays flat regardless of how many rows match. Ordered by
+        // model_id (the owning transaction's id) descending — latest
+        // transaction first — with id as a tie-break for a stable order,
+        // since chunkById can't paginate cleanly on the non-unique model_id.
         $manifest = tempnam(sys_get_temp_dir(), 'dealer_files_');
         $handle   = fopen($manifest, 'w');
         $skipped  = 0;
+        $lastRow  = null;
 
-        $query->orderBy('id')->chunkById(2000, function ($rows) use ($handle, &$skipped) {
-            foreach ($rows as $row) {
-                $key = $this->objectKey($row);
+        foreach ($query->orderByDesc('model_id')->orderByDesc('id')->cursor() as $row) {
+            $lastRow = $row;
+            $key     = $this->objectKey($row);
 
-                if ($key === null) {
-                    $skipped++;
+            if ($key === null) {
+                $skipped++;
 
-                    continue;
-                }
-
-                fwrite($handle, "{$key}\t{$row->disk}\n");
+                continue;
             }
-        });
+
+            fwrite($handle, "{$key}\t{$row->disk}\n");
+        }
 
         fclose($handle);
 
         $this->info("Matched {$count} file(s) for tags [{$tags->implode(', ')}]"
             . ($disk ? " on disk {$disk}" : '')
+            . ($checkpoint !== null ? " (resuming after model_id #{$checkpoint['model_id']})" : '')
+            . (isset($beforeDate) ? " (before {$beforeDate->toDateString()})" : '')
             . " → s3://{$this->option('bucket')} → {$dest}"
             . ($skipped ? " ({$skipped} skipped — no created_at/model_type/file_name)" : ''));
 
@@ -144,7 +192,14 @@ class DownloadTaggedFilesCommand extends Command
         // holds the values PHP started with, so empty AWS_* keys loaded from .env
         // can't clobber the ones the user exported. Region is pinned here too so
         // it overrides whatever .env set.
-        $env = ['AWS_DEFAULT_REGION' => $region, 'AWS_REGION' => $region];
+        // Silence boto3's Python-version deprecation warning — the pinned .venv
+        // (Python 3.9) triggers it on every run and it's just noise on stderr,
+        // not something actionable here.
+        $env = [
+            'AWS_DEFAULT_REGION' => $region,
+            'AWS_REGION'         => $region,
+            'PYTHONWARNINGS'     => 'ignore::DeprecationWarning',
+        ];
 
         foreach (['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_SESSION_TOKEN'] as $key) {
             $value = $_SERVER[$key] ?? getenv($key) ?: '';
@@ -162,15 +217,120 @@ class DownloadTaggedFilesCommand extends Command
             return self::FAILURE;
         }
 
-        $process = new Process($args, base_path(), $env, null, null);
+        $statusLog   = $this->option('status-log') ?: storage_path('logs/dealer-download-status.jsonl');
+        $maxAttempts = 1 + max(0, (int) $this->option('retries'));
+        $exit        = 1;
 
-        $exit = $process->run(function ($type, $buffer) {
-            $this->output->write($buffer);
-        });
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            if ($attempt > 1) {
+                $this->warn("Attempt {$attempt}/{$maxAttempts} — retrying download in place (already-downloaded files are skipped)…");
+            }
+
+            $output  = '';
+            $process = new Process($args, base_path(), $env, null, null);
+
+            $exit = $process->run(function ($type, $buffer) use (&$output) {
+                $this->output->write($buffer);
+                $output .= $buffer;
+            });
+
+            $this->logRunStatus($statusLog, [
+                'timestamp'    => now()->toIso8601String(),
+                'command'      => 'dealer:download-tagged-files',
+                'tags'         => $tags->values()->all(),
+                'disk'         => $disk ?: null,
+                'before'       => isset($beforeDate) ? $beforeDate->toDateString() : null,
+                'resumed_from' => $checkpoint,
+                'dest'         => $dest,
+                'matched'      => $count,
+                'attempt'      => $attempt,
+                'max_attempts' => $maxAttempts,
+                'dry_run'      => (bool) $this->option('dry-run'),
+                'exit_code'    => $exit,
+                'stats'        => $this->parseStats($output),
+            ]);
+
+            if ($exit === 0) {
+                break;
+            }
+        }
 
         @unlink($manifest);
 
+        // Only advance the checkpoint after a clean, real (non-dry-run) pass —
+        // a failed/denied-blocking run leaves it untouched so the same range
+        // is retried next time (already-downloaded files are fast-skipped by
+        // the script's own on-disk check either way).
+        if ($exit === 0 && ! $this->option('dry-run') && $lastRow !== null) {
+            $this->writeCheckpoint($checkpointPath, (int) $lastRow->model_id, (int) $lastRow->id);
+        }
+
         return $exit === 0 ? self::SUCCESS : self::FAILURE;
+    }
+
+    /**
+     * Pull the "ok/skip/missing/denied/failed" counts out of the script's
+     * final "Done: ..." line, so the status log records real per-attempt
+     * numbers instead of just the exit code.
+     *
+     * @return array{ok: int, skip: int, missing: int, denied: int, failed: int}|null
+     */
+    private function parseStats(string $output): ?array
+    {
+        if (! preg_match('/Done: ok (\d+), skip (\d+), missing (\d+), denied (\d+), failed (\d+)\./', $output, $m)) {
+            return null;
+        }
+
+        return [
+            'ok'      => (int) $m[1],
+            'skip'    => (int) $m[2],
+            'missing' => (int) $m[3],
+            'denied'  => (int) $m[4],
+            'failed'  => (int) $m[5],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $entry
+     */
+    private function logRunStatus(string $path, array $entry): void
+    {
+        $dir = dirname($path);
+
+        if (! is_dir($dir)) {
+            mkdir($dir, 0775, true);
+        }
+
+        file_put_contents($path, json_encode($entry) . "\n", FILE_APPEND | LOCK_EX);
+    }
+
+    /**
+     * @return array{model_id: int, id: int}|null
+     */
+    private function readCheckpoint(string $path): ?array
+    {
+        if (! is_file($path)) {
+            return null;
+        }
+
+        $decoded = json_decode((string) file_get_contents($path), true);
+
+        if (! is_array($decoded) || ! isset($decoded['model_id'], $decoded['id'])) {
+            return null;
+        }
+
+        return ['model_id' => (int) $decoded['model_id'], 'id' => (int) $decoded['id']];
+    }
+
+    private function writeCheckpoint(string $path, int $modelId, int $id): void
+    {
+        $dir = dirname($path);
+
+        if (! is_dir($dir)) {
+            mkdir($dir, 0775, true);
+        }
+
+        file_put_contents($path, json_encode(['model_id' => $modelId, 'id' => $id]));
     }
 
     /**

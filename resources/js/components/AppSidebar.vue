@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, DatabaseZap, FolderGit2, LayoutGrid } from '@lucide/vue';
+import { BookOpen, DatabaseZap, FolderGit2, Users } from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -19,14 +19,14 @@ import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-    {
         title: 'Data Sync',
         href: '/sync',
         icon: DatabaseZap,
+    },
+    {
+        title: 'CCD Party Staging',
+        href: '/ccd-party-staging',
+        icon: Users,
     },
 ];
 

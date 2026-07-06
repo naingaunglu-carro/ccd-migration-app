@@ -12,6 +12,10 @@ use Throwable;
  * Import Contact-type parties into the CCD party model, merged by
  * identification number using ccd_party_staging (populated by ccd:stage-parties).
  *
+ * --country overrides which dealer_transactions get walked (accepts a
+ * dealer_countries.id or .country_code, e.g. "MY"); omitted, it falls back to
+ * the tenant's mapped country from config/ccd.php (tenant_country).
+ *
  * Structurally the same transaction-walking loop as ccd:migrate-parties
  * (resumable via --offset, progress bar, checkpoint logging), scoped to
  * App\Modules\Contact\Models\Contact parties only. The difference is party
@@ -37,6 +41,7 @@ class ImportStagedPartiesCommand extends Command
      */
     protected $signature = 'ccd:import-staged-parties
         {tenant_id : Target tenant id (its country selects the dealer_transactions to migrate)}
+        {--country= : Only dealer_transactions for this dealer_countries.id or .country_code (default: tenant\'s mapped country)}
         {--limit= : Max number of dealer_transactions to process (all when omitted)}
         {--offset=0 : Skip this many transactions before starting (resume point after a failure)}';
 
@@ -60,12 +65,29 @@ class ImportStagedPartiesCommand extends Command
     {
         $this->tenantId = (int) $this->argument('tenant_id');
 
-        $countryId = config("ccd.tenant_country.{$this->tenantId}");
+        $countryOpt = $this->option('country') !== null ? trim((string) $this->option('country')) : null;
 
-        if ($countryId === null) {
-            $this->error("No country mapped for tenant #{$this->tenantId}. Add it to config/ccd.php (tenant_country).");
+        if ($countryOpt !== null) {
+            // Accept either a numeric dealer_countries.id or a country_code like "MY".
+            $country = ctype_digit($countryOpt)
+                ? DB::table('dealer_countries')->where('id', (int) $countryOpt)->first()
+                : DB::table('dealer_countries')->where('country_code', strtoupper($countryOpt))->first();
 
-            return self::FAILURE;
+            if ($country === null) {
+                $this->error("Unknown dealer_countries entry: {$countryOpt}");
+
+                return self::FAILURE;
+            }
+
+            $countryId = $country->id;
+        } else {
+            $countryId = config("ccd.tenant_country.{$this->tenantId}");
+
+            if ($countryId === null) {
+                $this->error("No country mapped for tenant #{$this->tenantId}. Add it to config/ccd.php (tenant_country), or pass --country=.");
+
+                return self::FAILURE;
+            }
         }
 
         $limit  = $this->option('limit') !== null ? (int) $this->option('limit') : null;
@@ -115,7 +137,7 @@ class ImportStagedPartiesCommand extends Command
         } catch (Throwable $e) {
             $bar->clear();
 
-            $resumeCmd = "php artisan ccd:import-staged-parties {$this->tenantId} --offset={$processed}"
+            $resumeCmd = "php artisan ccd:import-staged-parties {$this->tenantId} --offset={$processed} --country={$countryId}"
                 . ($limit !== null ? ' --limit=' . ($limit - ($processed - $offset)) : '');
 
             Log::error('ccd:import-staged-parties failed', [
@@ -149,7 +171,7 @@ class ImportStagedPartiesCommand extends Command
 
         if ($limit !== null && $total === $limit) {
             $this->newLine();
-            $this->comment("Next batch: php artisan ccd:import-staged-parties {$this->tenantId} --offset={$processed} --limit={$limit}");
+            $this->comment("Next batch: php artisan ccd:import-staged-parties {$this->tenantId} --offset={$processed} --limit={$limit} --country={$countryId}");
         }
 
         return self::SUCCESS;

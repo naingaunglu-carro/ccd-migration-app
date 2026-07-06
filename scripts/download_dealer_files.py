@@ -24,7 +24,7 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError, BotoCoreError
 
-_RETRY = Config(retries={"max_attempts": 5, "mode": "standard"})
+_RETRY = Config(retries={"max_attempts": 5, "mode": "standard"}, max_pool_connections=100)
 
 
 def parse_args():

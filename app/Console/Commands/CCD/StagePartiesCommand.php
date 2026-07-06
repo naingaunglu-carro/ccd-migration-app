@@ -4,6 +4,7 @@ namespace App\Console\Commands\CCD;
 
 use App\Console\Commands\CCD\Concerns\MigratesToCcd;
 use Illuminate\Console\Command;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,15 +16,24 @@ use Throwable;
  * or the same OCR-matched passport when no national id exists) can be merged
  * into one ccd_parties row instead of one per dealer_contacts record.
  *
+ * --years (default 3) scopes both which contacts get selected and which of
+ * their transactions are considered for OCR matching to dealer_transactions
+ * created within that window; pass --years=0 for all-time.
+ *
  * Two passes:
  *  1. Per distinct Contact-type dealer_contacts.id for the tenant's country:
  *     resolve an OCR name/passport match (via transaction_file_ocr, matched by
  *     national id or — when the contact has none — by being the sole Contact
- *     party on that transaction), compute an identification_key, upsert.
+ *     party on that transaction), compute an identification_key, and record
+ *     status ('identified'|'unidentified') + reason ('national_id',
+ *     'ocr_passport_match', or — when unidentified — 'no_ocr_data' /
+ *     'ocr_ambiguous' / 'ocr_unmatched' / 'ocr_no_passport'), then upsert.
  *  2. Group staged rows by (tenant_id, identification_key) and mark the most
- *     recently updated dealer_contacts row in each group as canonical — this
- *     runs over the *whole* staging table for the tenant every time, since a
- *     duplicate pair can land in different --limit batches.
+ *     recently updated dealer_contacts row in each group as canonical, and
+ *     stamp every member with merged_reference_ids (the group's reference_ids,
+ *     comma-separated ascending, e.g. "1,2") — this runs over the *whole*
+ *     staging table for the tenant every time, since a duplicate pair can land
+ *     in different --limit batches.
  */
 class StagePartiesCommand extends Command
 {
@@ -35,7 +45,8 @@ class StagePartiesCommand extends Command
     protected $signature = 'ccd:stage-parties
         {tenant_id : Target tenant id (its country selects the dealer_contacts to stage)}
         {--limit= : Max number of distinct contacts to stage (all when omitted)}
-        {--offset=0 : Skip this many contacts before starting (resume point after a failure)}';
+        {--offset=0 : Skip this many contacts before starting (resume point after a failure)}
+        {--years=3 : Only dealer_transactions from the last N years (created_at); use 0 for all-time}';
 
     /**
      * @var string
@@ -53,7 +64,7 @@ class StagePartiesCommand extends Command
      * placeholder value (e.g. "1234567891011") that pattern-matching alone
      * didn't catch — quarantine it rather than merge unrelated people.
      */
-    private const MAX_GROUP_SIZE = 5;
+    private const MAX_GROUP_SIZE = 10;
 
     private int $tenantId;
 
@@ -71,13 +82,16 @@ class StagePartiesCommand extends Command
 
         $limit  = $this->option('limit') !== null ? (int) $this->option('limit') : null;
         $offset = max(0, (int) $this->option('offset'));
+        $years  = max(0, (int) $this->option('years'));
+        $cutoff = $years > 0 ? now()->subYears($years) : null;
 
         $occurrenceBase = fn () => DB::table('dealer_transaction_parties as tp')
             ->join('dealer_transactions as t', 't.id', '=', 'tp.transaction_id')
             ->where('tp.type', self::CONTACT_MODEL)
             ->where('t.country_id', $countryId)
             ->whereNull('tp.deleted_at')
-            ->whereNull('t.deleted_at');
+            ->whereNull('t.deleted_at')
+            ->when($cutoff !== null, fn ($q) => $q->where('t.created_at', '>=', $cutoff));
 
         $totalAll  = $occurrenceBase()->selectRaw('count(distinct tp.type_id) as cnt')->value('cnt');
         $remaining = max(0, $totalAll - $offset);
@@ -95,7 +109,8 @@ class StagePartiesCommand extends Command
 
         $contactIds = $idsQuery->pluck('tp.type_id');
 
-        $this->info("Staging {$total} contact(s) for country #{$countryId} → tenant #{$this->tenantId} (offset {$offset})…");
+        $this->info("Staging {$total} contact(s) for country #{$countryId} → tenant #{$this->tenantId} (offset {$offset})"
+            . ($cutoff !== null ? ", last {$years} year(s) of transactions" : ', all-time') . '…');
 
         $bar = $this->output->createProgressBar($total);
         $bar->start();
@@ -104,7 +119,7 @@ class StagePartiesCommand extends Command
 
         try {
             foreach ($contactIds->chunk(self::CHUNK) as $chunk) {
-                $this->stageChunk($chunk->all(), $countryId);
+                $this->stageChunk($chunk->all(), $countryId, $cutoff);
                 $processed += $chunk->count();
                 $bar->advance($chunk->count());
             }
@@ -118,7 +133,7 @@ class StagePartiesCommand extends Command
             ]);
 
             $this->error("Failed after {$processed} contact(s): {$e->getMessage()}");
-            $this->warn("Resume with: php artisan ccd:stage-parties {$this->tenantId} --offset={$processed}"
+            $this->warn("Resume with: php artisan ccd:stage-parties {$this->tenantId} --offset={$processed} --years={$years}"
                 . ($limit !== null ? ' --limit=' . ($limit - ($processed - $offset)) : ''));
 
             return self::FAILURE;
@@ -135,7 +150,7 @@ class StagePartiesCommand extends Command
 
         if ($limit !== null && $total === $limit) {
             $this->newLine();
-            $this->comment("Next batch: php artisan ccd:stage-parties {$this->tenantId} --offset={$processed} --limit={$limit}");
+            $this->comment("Next batch: php artisan ccd:stage-parties {$this->tenantId} --offset={$processed} --limit={$limit} --years={$years}");
         }
 
         return self::SUCCESS;
@@ -144,7 +159,7 @@ class StagePartiesCommand extends Command
     /**
      * @param  list<int>  $contactIds
      */
-    private function stageChunk(array $contactIds, int $countryId): void
+    private function stageChunk(array $contactIds, int $countryId, ?CarbonInterface $cutoff): void
     {
         if ($contactIds === []) {
             return;
@@ -159,11 +174,14 @@ class StagePartiesCommand extends Command
             ->whereNull('tp.deleted_at')
             ->whereNull('t.deleted_at')
             ->whereIn('tp.type_id', $contactIds)
-            ->select('tp.type_id', 'tp.transaction_id')
+            ->when($cutoff !== null, fn ($q) => $q->where('t.created_at', '>=', $cutoff))
+            ->select('tp.type_id', 'tp.transaction_id', 't.created_at as transaction_created_at')
             ->get();
 
+        // Latest transaction first, so matchOcr() prefers the most recent
+        // transaction's OCR data when a contact shows up on more than one.
         $transactionIdsByContact = $occurrences->groupBy('type_id')
-            ->map(fn ($rows) => $rows->pluck('transaction_id')->unique()->values());
+            ->map(fn ($rows) => $rows->sortByDesc('transaction_created_at')->pluck('transaction_id')->unique()->values());
 
         $allTransactionIds = $occurrences->pluck('transaction_id')->unique()->values();
 
@@ -192,7 +210,7 @@ class StagePartiesCommand extends Command
             }
 
             $nationalId = $this->cleanIdentifier($contact->national_identity_number ?? null);
-            $ocrMatch   = $this->matchOcr(
+            [$ocrMatch, $ocrReason] = $this->matchOcr(
                 $transactionIdsByContact->get($contactId, collect()),
                 $ocrByTransaction,
                 $partyCounts,
@@ -207,10 +225,16 @@ class StagePartiesCommand extends Command
 
             $passport = $this->cleanIdentifier($ocrMatch->ocr_person_passport_number ?? null);
 
-            [$identificationKey, $identificationColumn] = match (true) {
-                $nationalId !== null => [$nationalId, 'person_national_id'],
-                $passport !== null   => [$passport, 'person_passport_number'],
-                default              => [null, null],
+            // status/reason record *why* identification_key did or didn't
+            // resolve — in particular, when there's no national id, whether
+            // OCR simply never ran for this contact's transactions vs. ran
+            // but couldn't be matched to them.
+            [$identificationKey, $identificationColumn, $status, $reason] = match (true) {
+                $nationalId !== null => [$nationalId, 'person_national_id', 'identified', 'national_id'],
+                $passport !== null   => [$passport, 'person_passport_number', 'identified', 'ocr_passport_match'],
+                // $ocrReason is null when matchOcr() actually found a candidate
+                // (e.g. matched by name only) but it had no usable passport number.
+                default => [null, null, 'unidentified', $ocrReason ?? 'ocr_no_passport'],
             };
 
             $rows[] = [
@@ -226,6 +250,8 @@ class StagePartiesCommand extends Command
                 'person_passport_number' => $passport,
                 'identification_key'     => $identificationKey,
                 'identification_column'  => $identificationColumn,
+                'status'                 => $status,
+                'reason'                 => $reason,
                 'source_updated_at'      => $contact->updated_at ?? $contact->created_at ?? null,
                 'updated_at'             => $now,
                 'created_at'             => $now,
@@ -242,7 +268,7 @@ class StagePartiesCommand extends Command
             [
                 'name', 'person_first_name', 'person_last_name', 'person_gender', 'person_date_of_birth',
                 'person_national_id', 'person_passport_number', 'identification_key', 'identification_column',
-                'source_updated_at', 'updated_at',
+                'status', 'reason', 'source_updated_at', 'updated_at',
             ],
         );
     }
@@ -253,25 +279,52 @@ class StagePartiesCommand extends Command
      * accepted unconditionally only when the transaction has exactly one
      * Contact party (so there's no ambiguity about who the document belongs to).
      *
+     * When nothing matches, the second element explains why:
+     *   - 'no_ocr_data'   — none of the contact's transactions have any
+     *                        completed OCR rows at all.
+     *   - 'ocr_ambiguous' — OCR rows exist, but every candidate transaction
+     *                        had more than one Contact party, so the document
+     *                        can't be safely attributed to this contact.
+     *   - 'ocr_unmatched' — an unambiguous (or id-matching) candidate existed
+     *                        but its OCR name/passport fields were blank, or
+     *                        (with a national id) no candidate's ids matched.
+     *
      * @param  Collection<int, int>  $transactionIds
      * @param  Collection<int|string, Collection<int, object>>  $ocrByTransaction
      * @param  Collection<int|string, int>  $partyCounts
+     * @return array{0: ?object, 1: ?string}
      */
-    private function matchOcr($transactionIds, $ocrByTransaction, $partyCounts, ?string $nationalId): ?object
+    private function matchOcr($transactionIds, $ocrByTransaction, $partyCounts, ?string $nationalId): array
     {
+        $sawOcr         = false;
+        $sawSingleParty = false;
+
         foreach ($transactionIds as $transactionId) {
             foreach ($ocrByTransaction->get($transactionId, collect()) as $candidate) {
+                $sawOcr = true;
+
+                $isSingleParty = ($partyCounts[$transactionId] ?? 0) === 1;
+                $sawSingleParty = $sawSingleParty || $isSingleParty;
+
                 $idMatches = $nationalId !== null
                     ? ($candidate->ocr_person_national_id === $nationalId || $candidate->ocr_person_passport_number === $nationalId)
-                    : (($partyCounts[$transactionId] ?? 0) === 1);
+                    : $isSingleParty;
 
                 if ($idMatches && (filled($candidate->ocr_name) || filled($candidate->ocr_person_passport_number))) {
-                    return $candidate;
+                    return [$candidate, null];
                 }
             }
         }
 
-        return null;
+        if (! $sawOcr) {
+            return [null, 'no_ocr_data'];
+        }
+
+        if ($nationalId === null && ! $sawSingleParty) {
+            return [null, 'ocr_ambiguous'];
+        }
+
+        return [null, 'ocr_unmatched'];
     }
 
     /**
@@ -315,25 +368,40 @@ class StagePartiesCommand extends Command
                 DB::table('ccd_party_staging')
                     ->where('tenant_id', $tenantId)
                     ->where('identification_key', $key)
-                    ->update(['identification_key' => null, 'identification_column' => null, 'updated_at' => now()]);
+                    ->update([
+                        'identification_key'    => null,
+                        'identification_column' => null,
+                        'status'                => 'unidentified',
+                        'reason'                => 'quarantined_placeholder',
+                        'updated_at'             => now(),
+                    ]);
 
                 $quarantined++;
 
                 continue;
             }
 
-            $winner = DB::table('ccd_party_staging')
+            $memberIds = DB::table('ccd_party_staging')
                 ->where('tenant_id', $tenantId)
                 ->where('identification_key', $key)
                 ->orderByDesc('source_updated_at')
                 ->orderByDesc('reference_id') // stable tie-break when updated_at ties/nulls
-                ->value('reference_id');
+                ->pluck('reference_id');
+
+            $winner = $memberIds->first();
 
             if ($winner !== null) {
+                // e.g. "1,2" — every reference_id merged into this group, ascending.
+                $mergedReferenceIds = $memberIds->sort()->implode(',');
+
                 DB::table('ccd_party_staging')
                     ->where('tenant_id', $tenantId)
                     ->where('identification_key', $key)
-                    ->update(['canonical_reference_id' => $winner, 'updated_at' => now()]);
+                    ->update([
+                        'canonical_reference_id' => $winner,
+                        'merged_reference_ids'   => $mergedReferenceIds,
+                        'updated_at'             => now(),
+                    ]);
 
                 $resolved++;
             }

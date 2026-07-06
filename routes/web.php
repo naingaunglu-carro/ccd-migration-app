@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CcdPartyStagingController;
 use App\Http\Controllers\SyncController;
 use Illuminate\Support\Facades\Route;
 
@@ -12,6 +13,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('sync', [SyncController::class, 'index'])->name('sync.index');
     Route::post('sync/{source}/download', [SyncController::class, 'download'])->name('sync.download');
     Route::post('sync/downloads/{download}/import', [SyncController::class, 'import'])->name('sync.import');
+
+    // CCD party staging dashboard.
+    Route::get('ccd-party-staging', [CcdPartyStagingController::class, 'index'])->name('ccd-party-staging.index');
 });
 
 require __DIR__ . '/settings.php';

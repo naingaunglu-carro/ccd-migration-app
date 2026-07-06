@@ -36,13 +36,13 @@ return new class extends Migration
             $table->timestamp('deleted_at')->nullable();
             $table->json('responsive_images')->nullable();
             $table->json('generated_conversions')->nullable();
+            $table->string('tag_name')->nullable();
             $table->timestamp('sync_created_at')->nullable();
             $table->timestamp('sync_updated_at')->nullable();
             $table->timestamp('sync_last_synced_at')->nullable();
+            $table->index('model_id');
+            $table->index('tag_name');
             $table->index(['model_id', 'model_type']);
-            $table->index('slug');
-            $table->index(['file_name', 'disk']);
-            $table->index('name');
         });
     }
 

@@ -99,7 +99,7 @@ class QueueFileOcrCommand extends Command
         $buffer       = [];
         $remoteFailed = false;
 
-        $flush = function () use (&$buffer, &$queued, &$remoteFailed, $now, $bar) {
+        $flush = function () use (&$buffer, &$queued, &$remoteFailed, $bar) {
             if ($buffer === []) {
                 return;
             }

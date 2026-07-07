@@ -35,7 +35,7 @@ return new class extends Migration
 
             // How identification_key was (or wasn't) resolved.
             $table->string('status')->nullable(); // 'identified' | 'unidentified'
-            $table->string('reason')->nullable(); // 'national_id' | 'ocr_passport_match' | 'no_ocr_data' | 'ocr_ambiguous' | 'ocr_unmatched' | 'ocr_no_passport' | 'quarantined_placeholder'
+            $table->string('reason')->nullable(); // 'national_id' | 'ocr_passport_match' | 'no_ocr_data' | 'ocr_ambiguous' | 'ocr_unmatched' | 'ocr_no_passport' | 'quarantined_placeholder' | 'ignored_name'
 
             $table->timestamp('source_updated_at')->nullable(); // dealer_contacts.updated_at — tie-break input
             $table->unsignedBigInteger('canonical_reference_id')->nullable(); // filled by the 2nd pass

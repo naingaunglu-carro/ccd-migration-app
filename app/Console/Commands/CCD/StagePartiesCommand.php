@@ -27,7 +27,8 @@ use Throwable;
  *     party on that transaction), compute an identification_key, and record
  *     status ('identified'|'unidentified') + reason ('national_id',
  *     'ocr_passport_match', or — when unidentified — 'no_ocr_data' /
- *     'ocr_ambiguous' / 'ocr_unmatched' / 'ocr_no_passport'), then upsert.
+ *     'ocr_ambiguous' / 'ocr_unmatched' / 'ocr_no_passport' / 'ignored_name'
+ *     for names matching config('ccd.ignore_names')), then upsert.
  *  2. Group staged rows by (tenant_id, identification_key) and mark the most
  *     recently updated dealer_contacts row in each group as canonical, and
  *     stamp every member with merged_reference_ids (the group's reference_ids,
@@ -67,6 +68,9 @@ class StagePartiesCommand extends Command
     private const MAX_GROUP_SIZE = 10;
 
     private int $tenantId;
+
+    /** @var list<string>|null uppercased, trimmed config('ccd.ignore_names') */
+    private ?array $ignoreNames = null;
 
     public function handle(): int
     {
@@ -225,11 +229,14 @@ class StagePartiesCommand extends Command
 
             $passport = $this->cleanIdentifier($ocrMatch->ocr_person_passport_number ?? null);
 
+            $rawName = $contact->display_name ?? $contact->name ?? null;
+
             // status/reason record *why* identification_key did or didn't
             // resolve — in particular, when there's no national id, whether
             // OCR simply never ran for this contact's transactions vs. ran
             // but couldn't be matched to them.
             [$identificationKey, $identificationColumn, $status, $reason] = match (true) {
+                $this->isIgnoredName($rawName) || $this->isIgnoredName($name) => [null, null, 'unidentified', 'ignored_name'],
                 $nationalId !== null => [$nationalId, 'person_national_id', 'identified', 'national_id'],
                 $passport !== null   => [$passport, 'person_passport_number', 'identified', 'ocr_passport_match'],
                 // $ocrReason is null when matchOcr() actually found a candidate
@@ -336,6 +343,29 @@ class StagePartiesCommand extends Command
         $value = trim((string) $value);
 
         return $this->isUsableValue($value) ? $value : null;
+    }
+
+    /**
+     * Whether $name matches config('ccd.ignore_names') — company/dealer names
+     * (or other known junk) that show up as a Contact's name/display_name
+     * instead of a real person, compared case-insensitively and trimmed.
+     */
+    private function isIgnoredName(?string $name): bool
+    {
+        if ($name === null || trim($name) === '') {
+            return false;
+        }
+
+        if ($this->ignoreNames === null) {
+            $this->ignoreNames = collect(config('ccd.ignore_names', []))
+                ->map(fn ($n) => strtoupper(trim((string) $n)))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        return in_array(strtoupper(trim($name)), $this->ignoreNames, true);
     }
 
     /**

@@ -35,4 +35,58 @@ return [
         'App\\Modules\\Account\\Group\\Models\\Group'   => ['source' => 'dealer_groups', 'ref' => 'group', 'kind' => 'company'],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Ignored contact names
+    |--------------------------------------------------------------------------
+    | Company/dealer names (and other known junk) that show up as Contact-type
+    | dealer_contacts.name / display_name values instead of a real person.
+    | ccd:stage-parties matches these case-insensitively (trimmed) and stages
+    | them as status 'unidentified' / reason 'ignored_name' instead of
+    | resolving an identification_key for them.
+    */
+
+    'ignore_names' => [
+        'WING HIN MOTOR SDN BHD',
+        'NGAN KOK SENG',
+        'FOREVERISE MOTOR',
+        'WING HIN AUTOMOBILE SDN BHD',
+        'KOH BROTHER AUTOMOBILE',
+        'SOLECAR SDN BHD',
+        'COSMOPOLITAN AUTOMOTIVE ENTERPRISE',
+        'WING HIN AUTOMOBILE SDN BHD. ( 576238-X )',
+        'COSMO AUTO SDN BHD',
+        'MOTORS CONFIDENCE (M) SDN BHD',
+        'PUNCAK MERAK SDN BHD',
+        'LASER MOTOR SDN BHD',
+        'ZEN AUTO ENTERPRISE',
+        'CARWIFE AUTOMOTIVE SDN BHD',
+        'CKY AUTO CAR',
+        'LETGO MOTORSPORT SDN BHD',
+        'INVICTUS MOTOR',
+        'ISMAIL BIN AHMAD',
+        'JAX AUTO',
+        'TAN CHEE KEONG',
+        'CKE AUTO SDN BHD',
+        'SAHABAT MOTOR',
+        'FIRDAUS',
+        'KIEW CHANG KEONG',
+        'LEE CHEE KEONG',
+        'AK AUTO SPEEDWAY ENTERPRISE',
+        'CCBC AUTO VENTURE',
+        'CHEY KOON MING',
+        'CK AUTOMOBILE (M) SDN BHD',
+        'D 4 W ENTERPRISE',
+        'QC HOLIDAY PREMIUM RENTAL SDN BHD',
+        'RIZQ HAYAT RESOURCES',
+        'WAN',
+        'WING HIN GROUP SDN BHD',
+        'AMIRUL',
+        'BERMAZ MOTOR TRADING SDN BHD',
+        'CASSA AUTO CITY SDN BHD',
+        'EASY EXPRESS AUTO',
+        'ERA AUTO SDN BHD',
+        'EZZE MOTOR ENTERPRISE',
+    ],
+
 ];

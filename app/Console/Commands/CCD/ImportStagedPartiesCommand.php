@@ -19,13 +19,12 @@ use Throwable;
  * Structurally the same transaction-walking loop as ccd:migrate-parties
  * (resumable via --offset, progress bar, checkpoint logging), scoped to
  * App\Modules\Contact\Models\Contact parties only. The difference is party
- * resolution: when a Contact's staged row has an identification_key
- * (national id, or an OCR-matched passport when no national id exists),
- * every occurrence sharing that key resolves to the same ccd_parties row —
- * using the canonical staged contact's field values — instead of creating one
- * party per dealer_contacts record. Contacts with no identification key at
- * all fall back to the legacy per-reference key
- * (tenant_id, reference_id, reference_name).
+ * resolution: only Contacts staged with status 'identified' (i.e. resolved to
+ * a national id or an OCR-matched passport) are imported — every occurrence
+ * sharing that identification_key resolves to the same ccd_parties row, using
+ * the canonical staged contact's field values, instead of creating one party
+ * per dealer_contacts record. Contacts that are unstaged or staged as
+ * 'unidentified' are skipped entirely (no party, no associations).
  *
  * The five association upserts (category, group, address, contact points,
  * bank accounts) are unchanged from ccd:migrate-parties — they're what
@@ -193,6 +192,12 @@ class ImportStagedPartiesCommand extends Command
 
             if ($row === null) {
                 continue; // dangling reference — contact not (yet) synced
+            }
+
+            $staged = $this->stagingFor((int) $party->type_id);
+
+            if ($staged === null || $staged->status !== 'identified') {
+                continue; // only import contacts staged as 'identified'
             }
 
             $identity = [

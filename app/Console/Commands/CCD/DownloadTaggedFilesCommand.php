@@ -18,12 +18,13 @@ use Symfony\Component\Process\Process;
  *
  * S3 object keys follow Spatie Media Library's "{id}/{file_name}" layout.
  *
- * Resumable: after a run that completes cleanly (exit 0 — no failed/denied
- * objects), the (model_id, id) of the last row processed is written to a
- * checkpoint file next to --dest. Since rows are walked latest-transaction
- * first, the next plain re-run automatically picks up only what's older than
- * that checkpoint instead of re-listing/re-matching everything again. Pass
- * --restart to ignore the checkpoint and do a full pass.
+ * Resumable: after a run that completes cleanly (0 denied, 0 failed — a run
+ * with denied/archived objects does NOT advance it, since those still need a
+ * real S3 restore, not just a retry), the (model_id, id) of the last row
+ * processed is written to a checkpoint file next to --dest. Since rows are
+ * walked latest-transaction first, the next plain re-run automatically picks
+ * up only what's older than that checkpoint instead of re-listing/re-matching
+ * everything again. Pass --restart to ignore the checkpoint and do a full pass.
  *
  * --retries (default 2) re-invokes the python script in place against the
  * same manifest if it exits non-zero (already-downloaded files are
@@ -220,6 +221,7 @@ class DownloadTaggedFilesCommand extends Command
         $statusLog   = $this->option('status-log') ?: storage_path('logs/dealer-download-status.jsonl');
         $maxAttempts = 1 + max(0, (int) $this->option('retries'));
         $exit        = 1;
+        $stats       = null;
 
         for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
             if ($attempt > 1) {
@@ -234,6 +236,8 @@ class DownloadTaggedFilesCommand extends Command
                 $output .= $buffer;
             });
 
+            $stats = $this->parseStats($output);
+
             $this->logRunStatus($statusLog, [
                 'timestamp'    => now()->toIso8601String(),
                 'command'      => 'dealer:download-tagged-files',
@@ -247,7 +251,7 @@ class DownloadTaggedFilesCommand extends Command
                 'max_attempts' => $maxAttempts,
                 'dry_run'      => (bool) $this->option('dry-run'),
                 'exit_code'    => $exit,
-                'stats'        => $this->parseStats($output),
+                'stats'        => $stats,
             ]);
 
             if ($exit === 0) {
@@ -257,12 +261,18 @@ class DownloadTaggedFilesCommand extends Command
 
         @unlink($manifest);
 
-        // Only advance the checkpoint after a clean, real (non-dry-run) pass —
-        // a failed/denied-blocking run leaves it untouched so the same range
-        // is retried next time (already-downloaded files are fast-skipped by
-        // the script's own on-disk check either way).
-        if ($exit === 0 && ! $this->option('dry-run') && $lastRow !== null) {
+        // Only advance the checkpoint after a fully clean, real (non-dry-run)
+        // pass: exit 0 alone isn't enough — the script also exits 0 when
+        // objects are "denied" (e.g. archived to Glacier — InvalidObjectState)
+        // as long as some succeeded, and those denied objects still need a
+        // real S3 restore, not just a retry. Advancing the checkpoint past
+        // them would silently drop them from every future incremental run.
+        $cleanPass = $exit === 0 && $stats !== null && $stats['denied'] === 0 && $stats['failed'] === 0;
+
+        if ($cleanPass && ! $this->option('dry-run') && $lastRow !== null) {
             $this->writeCheckpoint($checkpointPath, (int) $lastRow->model_id, (int) $lastRow->id);
+        } elseif ($exit === 0 && ! $cleanPass && ! $this->option('dry-run')) {
+            $this->warn('Checkpoint not advanced: run had denied/failed objects (e.g. archived files needing an S3 restore) — re-run to retry them.');
         }
 
         return $exit === 0 ? self::SUCCESS : self::FAILURE;

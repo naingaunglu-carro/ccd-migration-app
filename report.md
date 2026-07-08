@@ -1,22 +1,36 @@
-# Dealer Transactions & OCR Summary Report
+# Transaction & Contact Processing Report (6/28/2026)
 
-**Report Date:** `2026-06-28`
+| Metric | Count | Percentage |
+|--------|------:|-----------:|
+| **Total Transactions** | 692,640 | 100.00% |
+| **My Total Transactions** | 570,219 | 82.33% of Total Transactions |
+| **Unique Contacts from Transactions** | 282,589 | 49.56% of My Total Transactions |
+| **OCR Verified** | 49,996 | 17.69% of Unique Contacts |
+| **Valid Contacts with National ID** | 176,154 | 62.34% of Unique Contacts |
+| **Merged Same National ID** | 49,535 | 28.12% of Valid Contacts with National ID |
 
-## Executive Summary
+## Summary
 
-| Metric                         |       Value |
-| :----------------------------- | ----------: |
-| **Total Dealer Transactions**  | **692,640** |
-| **Malaysia (MY) Transactions** | **570,219** |
+- **Total Transactions:** 692,640
+- **My Total Transactions:** 570,219 (**82.33%** of total)
+- **Unique Contacts from Transactions:** 282,589 (**49.56%** of My Total Transactions)
+- **OCR Verified:** 49,996 (**17.69%** of Unique Contacts)
+- **Valid Contacts with National ID:** 176,154 (**62.34%** of Unique Contacts)
+- **Merged Same National ID:** 49,535 
 
----
+## Processing Flow
 
-## OCR Contact Processing
-
-**Total Contacts Received from Dealers:** **282,589**
-
-| Status          |    Contacts |       Share |
-| :-------------- | ----------: | ----------: |
-| ✅ Identified    | **203,004** |  **71.84%** |
-| ⚠️ Unidentified |  **79,585** |  **28.16%** |
-| **Total**       | **282,589** | **100.00%** |
+```text
+Total Transactions
+        │
+        ▼
+My Total Transactions (570,219)
+        │
+        ▼
+Unique Contacts (282,589)
+        ├── OCR Verified: 49,996
+        └── Valid Contacts with National ID: 176,154
+                     │
+                     ▼
+         Merged Same National ID: 49,535
+```

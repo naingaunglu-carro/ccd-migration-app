@@ -9,17 +9,22 @@ import ccdPartyStaging from '@/routes/ccd-party-staging';
 
 interface Row {
     id: number;
-    tenant_id: number;
+    country_id: number;
     reference_id: number;
-    name: string | null;
-    person_national_id: string | null;
-    person_passport_number: string | null;
+    original_name: string | null;
+    ocr_name: string | null;
+    original_national_id: string | null;
+    ocr_person_national_id: string | null;
+    ocr_person_passport_number: string | null;
     identification_key: string | null;
     identification_column: string | null;
     status: string | null;
     reason: string | null;
-    canonical_reference_id: number | null;
-    merged_reference_ids: string | null;
+    confidence_score: number | null;
+    is_verified: boolean;
+    confidence_score_for_original: number | null;
+    is_original_verified: boolean;
+    transaction_ids: string | null;
     created_at: string | null;
 }
 
@@ -37,9 +42,9 @@ const props = defineProps<{
     total: number;
     statusCounts: Record<string, number>;
     reasonCounts: Record<string, number>;
-    tenants: number[];
+    countries: number[];
     filters: {
-        tenant_id: number | null;
+        country_id: number | null;
         status: string | null;
         reason: string | null;
         search: string | null;
@@ -54,14 +59,14 @@ defineOptions({
     },
 });
 
-const tenantId = ref<number | null>(props.filters.tenant_id);
+const countryId = ref<number | null>(props.filters.country_id);
 const status = ref<string | null>(props.filters.status);
 const reason = ref<string | null>(props.filters.reason);
 const search = ref(props.filters.search ?? '');
 
-const tenantOptions = computed(() => [
-    { label: 'All tenants', value: null },
-    ...props.tenants.map((t) => ({ label: `Tenant ${t}`, value: t })),
+const countryOptions = computed(() => [
+    { label: 'All countries', value: null },
+    ...props.countries.map((c) => ({ label: `Country ${c}`, value: c })),
 ]);
 
 const statusOptions = computed(() => [
@@ -84,7 +89,7 @@ const applyFilters = () => {
     router.get(
         ccdPartyStaging.index().url,
         {
-            tenant_id: tenantId.value ?? undefined,
+            country_id: countryId.value ?? undefined,
             status: status.value ?? undefined,
             reason: reason.value ?? undefined,
             search: search.value || undefined,
@@ -93,7 +98,7 @@ const applyFilters = () => {
     );
 };
 
-watch([tenantId, status, reason], applyFilters);
+watch([countryId, status, reason], applyFilters);
 
 let searchTimeout: ReturnType<typeof setTimeout> | undefined;
 watch(search, () => {
@@ -102,7 +107,7 @@ watch(search, () => {
 });
 
 const clearFilters = () => {
-    tenantId.value = null;
+    countryId.value = null;
     status.value = null;
     reason.value = null;
     search.value = '';
@@ -126,19 +131,39 @@ const goToPage = (url: string | null) => {
 
 const formatDate = (value: string | null) =>
     value ? new Date(value).toLocaleString() : '—';
+
+// ocr_name wins when present (it required an independent OCR match to be
+// filled at all — see is_verified) — otherwise fall back to the frozen
+// original_name straight from dealer_contacts.
+const displayName = (row: Row) => row.ocr_name ?? row.original_name ?? '—';
+
+const confidenceSeverity = (score: number | null) => {
+    if (score === null) return 'secondary';
+    if (score >= 1) return 'success';
+    if (score >= 0.75) return 'info';
+    if (score > 0) return 'warn';
+    return 'danger';
+};
+
+const formatScore = (score: number | null) =>
+    score === null ? '—' : score.toFixed(2);
+
+const transactionCount = (value: string | null) =>
+    value ? value.split('|').filter(Boolean).length : 0;
 </script>
 
 <template>
     <Head title="CCD Party Staging" />
 
-    <div class="mx-auto flex h-full w-full max-w-6xl flex-1 flex-col gap-6 p-6">
+    <div class="mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-6 p-6">
         <div class="space-y-1">
             <h1 class="text-2xl font-semibold tracking-tight">
                 CCD Party Staging
             </h1>
             <p class="text-sm text-muted-foreground">
-                Contacts staged for merge-by-identification before import into
-                ccd_parties.
+                Contacts staged from stg_one_parties — identification resolved
+                from dealer_contacts national ids and OCR-matched documents,
+                ahead of merge-by-identity into stg_two_parties.
             </p>
         </div>
 
@@ -210,8 +235,8 @@ const formatDate = (value: string | null) =>
         <!-- Filter bar -->
         <div class="flex flex-wrap items-center gap-2">
             <Select
-                v-model="tenantId"
-                :options="tenantOptions"
+                v-model="countryId"
+                :options="countryOptions"
                 option-label="label"
                 option-value="value"
                 class="w-44"
@@ -274,13 +299,15 @@ const formatDate = (value: string | null) =>
                 <thead class="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
                     <tr>
                         <th class="px-3 py-2 text-left">ID</th>
-                        <th class="px-3 py-2 text-left">Tenant</th>
+                        <th class="px-3 py-2 text-left">Country</th>
                         <th class="px-3 py-2 text-left">Reference</th>
                         <th class="px-3 py-2 text-left">Name</th>
                         <th class="px-3 py-2 text-left">Identification</th>
                         <th class="px-3 py-2 text-left">Status</th>
                         <th class="px-3 py-2 text-left">Reason</th>
-                        <th class="px-3 py-2 text-left">Canonical</th>
+                        <th class="px-3 py-2 text-left">Confidence</th>
+                        <th class="px-3 py-2 text-left">Original</th>
+                        <th class="px-3 py-2 text-left">Transactions</th>
                         <th class="px-3 py-2 text-left">Updated</th>
                     </tr>
                 </thead>
@@ -293,11 +320,11 @@ const formatDate = (value: string | null) =>
                         <td class="px-3 py-2 tabular-nums text-muted-foreground">
                             #{{ row.id }}
                         </td>
-                        <td class="px-3 py-2 tabular-nums">{{ row.tenant_id }}</td>
+                        <td class="px-3 py-2 tabular-nums">{{ row.country_id }}</td>
                         <td class="px-3 py-2 tabular-nums">
                             {{ row.reference_id }}
                         </td>
-                        <td class="px-3 py-2">{{ row.name ?? '—' }}</td>
+                        <td class="px-3 py-2">{{ displayName(row) }}</td>
                         <td class="px-3 py-2 text-xs text-muted-foreground">
                             <span v-if="row.identification_key">
                                 {{ row.identification_column }}:
@@ -317,8 +344,22 @@ const formatDate = (value: string | null) =>
                         <td class="px-3 py-2 text-xs text-muted-foreground">
                             {{ row.reason ?? '—' }}
                         </td>
+                        <td class="px-3 py-2">
+                            <Tag
+                                :value="`${formatScore(row.confidence_score)} · OCR${row.is_verified ? ' ✓' : ''}`"
+                                :severity="confidenceSeverity(row.confidence_score)"
+                                rounded
+                            />
+                        </td>
+                        <td class="px-3 py-2">
+                            <Tag
+                                :value="`${formatScore(row.confidence_score_for_original)}${row.is_original_verified ? ' ✓' : ''}`"
+                                :severity="confidenceSeverity(row.confidence_score_for_original)"
+                                rounded
+                            />
+                        </td>
                         <td class="px-3 py-2 tabular-nums text-muted-foreground">
-                            {{ row.canonical_reference_id ?? '—' }}
+                            {{ transactionCount(row.transaction_ids) }}
                         </td>
                         <td class="px-3 py-2 text-xs tabular-nums text-muted-foreground">
                             {{ formatDate(row.created_at) }}

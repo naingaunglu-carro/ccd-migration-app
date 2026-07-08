@@ -6,7 +6,8 @@ import Menu from 'primevue/menu';
 import Menubar from 'primevue/menubar';
 import type { MenuItem } from 'primevue/menuitem';
 import { computed, ref } from 'vue';
-import { dashboard, logout } from '@/routes';
+import { logout } from '@/routes';
+import ccdPartyStaging from '@/routes/ccd-party-staging';
 import type { BreadcrumbItem } from '@/types';
 
 const { breadcrumbs = [] } = defineProps<{
@@ -26,7 +27,7 @@ const initials = computed(() =>
 );
 
 const navItems: MenuItem[] = [
-    { label: 'Dashboard', icon: 'pi pi-home', command: () => router.visit(dashboard().url) },
+    { label: 'CCD Party Staging', icon: 'pi pi-users', command: () => router.visit(ccdPartyStaging.index().url) },
     { label: 'Data Sync', icon: 'pi pi-database', command: () => router.visit('/sync') },
 ];
 
@@ -52,7 +53,7 @@ const toggleUserMenu = (event: Event) => userMenu.value.toggle(event);
         <Menubar :model="navItems" class="rounded-none border-x-0 border-t-0">
             <template #start>
                 <Link
-                    :href="dashboard().url"
+                    :href="ccdPartyStaging.index().url"
                     class="mr-6 flex items-center gap-2 font-semibold"
                 >
                     <i class="pi pi-sync text-primary" />

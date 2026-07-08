@@ -14,7 +14,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import ccdPartyStaging from '@/routes/ccd-party-staging';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -50,7 +50,7 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="dashboard()">
+                        <Link :href="ccdPartyStaging.index()">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>

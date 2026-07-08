@@ -48,6 +48,16 @@ return new class extends Migration
             $table->string('original_gender')->nullable();
             $table->date('original_date_of_birth')->nullable();
 
+            // Confidence in original_national_id specifically (independent of
+            // OCR): 1.00 when OCR cross-validated it (mirrors is_verified),
+            // 0.75 when no OCR confirmation exists but it structurally passes
+            // country-specific national id validation (Malaysia: 12-digit IC
+            // with a real birth date and valid state code — rejects
+            // placeholder junk like "XX0000000000"), null when there's no
+            // national id or no validation rule for the contact's country.
+            $table->decimal('confidence_score_for_original', 3, 2)->nullable();
+            $table->boolean('is_original_verified')->default(false);
+
             // Merge key: whichever id column above is usable (national id, or
             // an OCR-matched passport) — not merged across records yet.
             $table->string('identification_key')->nullable();

@@ -38,11 +38,20 @@ use Illuminate\Support\Str;
  * available signal even when unverified).
  *
  * identification_key/status/reason are recomputed every run:
- * original_national_id wins outright when present; otherwise a matched OCR
- * passport becomes the key. transaction_ids/file_ids/possible_names/
- * possible_national_ids/possible_passport_numbers are all "|"-separated,
- * latest-first, and merge newly-seen values into the existing list rather
- * than overwriting it.
+ * original_national_id wins outright when it's usable — either OCR
+ * cross-validated it (is_verified) or, absent that, it structurally passes
+ * country-specific validation (currently just Malaysia's 12-digit IC format,
+ * see isValidMyNationalId()); a national id that fails this check (e.g.
+ * placeholder junk like "XX0000000000") is never used for identification,
+ * landing the row as 'unidentified' / reason 'invalid_national_id_format'
+ * instead. confidence_score_for_original/is_original_verified track this
+ * independently of the OCR confidence_score/is_verified pair: 1.00/true when
+ * OCR-confirmed, ~0.75/true when only format-valid, 0.00/false when
+ * format-invalid, null/false when there's no id or no validation rule for
+ * the country. Otherwise a matched OCR passport becomes the key.
+ * transaction_ids/file_ids/possible_names/possible_national_ids/
+ * possible_passport_numbers are all "|"-separated, latest-first, and merge
+ * newly-seen values into the existing list rather than overwriting it.
  *
  * possible_* is deliberately broader than ocr_*: it's every name/national
  * id/passport OCR'd across ALL of the contact's transactions, not just the
@@ -68,6 +77,8 @@ class StageOnePartiesCommand extends Command
     private const CONTACT_MODEL = 'App\Modules\Contact\Models\Contact';
 
     private const FLUSH_EVERY = 200;
+
+    private const MALAYSIA_COUNTRY_ID = 49;
 
     /**
      * Tokens that signal placeholder / junk free-text data rather than a real
@@ -262,7 +273,12 @@ class StageOnePartiesCommand extends Command
                 $originalFirstName   = $contact->first_name ?? null;
                 $originalLastName    = $contact->last_name ?? null;
                 $originalNationality = $contact->nationality ?? null;
-                $originalNationalId  = $this->cleanIdentifier($contact->national_identity_number ?? null);
+                // Standardize identification_key: dealer_contacts stores
+                // national ids both formatted ("920210-01-5860") and bare
+                // ("920210015860") — strip separators so the same real person
+                // always produces the same key, matching the OCR side (which
+                // is already stripped) instead of splitting into two keys.
+                $originalNationalId  = $this->cleanIdentifier($this->stripFormatting($contact->national_identity_number ?? null));
                 $originalGender      = $contact->gender ?? null;
                 $originalDob         = isset($contact->date_of_birth) ? substr($contact->date_of_birth, 0, 10) : null;
             }
@@ -307,9 +323,41 @@ class StageOnePartiesCommand extends Command
             $ocrNationalId = $isVerified ? $ocrNationalIdRaw : null;
             $ocrPassport   = $isVerified ? $ocrPassportRaw : null;
 
+            $rowCountryId = $existingRow->country_id ?? ($countryId ?? $contact->country_id);
+
+            // Confidence in original_national_id specifically: OCR
+            // cross-validation (above) already proves it; absent that, fall
+            // back to structural validation where we have a rule for the
+            // contact's country (currently just Malaysia's 12-digit IC).
+            // A national id that fails this check is treated as unusable for
+            // identification below — it's likely placeholder junk (e.g.
+            // "XX0000000000") that the generic cleanIdentifier() pass didn't catch.
+            $originalNationalIdFormatValid = $originalNationalId === null
+                ? null
+                : ((int) $rowCountryId === self::MALAYSIA_COUNTRY_ID ? $this->isValidMyNationalId($originalNationalId) : null);
+
+            [$confidenceScoreForOriginal, $isOriginalVerified] = match (true) {
+                $originalNationalId === null   => [null, false],
+                $isVerified                    => [1.00, true],
+                $originalNationalIdFormatValid === true  => [0.75, true],
+                $originalNationalIdFormatValid === false => [0.00, false],
+                // No country-specific rule to check against and no OCR
+                // confirmation — can't assert validity either way.
+                default => [null, false],
+            };
+
+            // OCR independently confirming the exact same value outweighs the
+            // format heuristic — isValidMyNationalId()'s state-code range is a
+            // simplification (real MyKad numbers use broader foreign/special
+            // codes it doesn't cover), so an id both sources agree on is
+            // trusted even if it falls outside that simplified range.
+            $originalNationalIdUsable = $originalNationalId !== null
+                && ($isVerified || $originalNationalIdFormatValid !== false);
+
             [$identificationKey, $identificationColumn, $status, $reason] = match (true) {
-                $originalNationalId !== null => [$originalNationalId, 'national_id', 'identified', 'national_id'],
-                $ocrPassportRaw !== null     => [$ocrPassportRaw, 'passport_number', 'identified', 'ocr_passport_match'],
+                $originalNationalIdUsable => [$originalNationalId, 'national_id', 'identified', 'national_id'],
+                $ocrPassportRaw !== null  => [$ocrPassportRaw, 'passport_number', 'identified', 'ocr_passport_match'],
+                $originalNationalId !== null => [null, null, 'unidentified', 'invalid_national_id_format'],
                 // $ocrReason is null when matchOcr() actually found a candidate
                 // (e.g. matched by name only) but it had no usable passport number.
                 default => [null, null, 'unidentified', $ocrReason ?? 'ocr_no_passport'],
@@ -334,7 +382,7 @@ class StageOnePartiesCommand extends Command
             $possiblePassportNumbers = $this->mergeValues($existingRow->possible_passport_numbers ?? null, $candidatePassports);
 
             $rows[] = [
-                'country_id'                 => $existingRow->country_id ?? ($countryId ?? $contact->country_id),
+                'country_id'                 => $rowCountryId,
                 'reference_id'               => $contactId,
                 'reference_name'             => 'contact',
                 'ocr_name_slug'              => $ocrNameSlug,
@@ -354,6 +402,8 @@ class StageOnePartiesCommand extends Command
                 'original_passport_number'   => null, // dealer_contacts has no passport column
                 'original_gender'            => $originalGender,
                 'original_date_of_birth'     => $originalDob,
+                'confidence_score_for_original' => $confidenceScoreForOriginal,
+                'is_original_verified'       => $isOriginalVerified,
                 'identification_key'         => $identificationKey,
                 'identification_column'      => $identificationColumn,
                 'possible_names'             => $possibleNames,
@@ -381,6 +431,7 @@ class StageOnePartiesCommand extends Command
                 'original_name_slug', 'original_name', 'original_first_name', 'original_last_name',
                 'original_nationality', 'original_national_id', 'original_passport_number',
                 'original_gender', 'original_date_of_birth',
+                'confidence_score_for_original', 'is_original_verified',
                 'identification_key', 'identification_column',
                 'possible_names', 'possible_national_ids', 'possible_passport_numbers',
                 'transaction_ids', 'file_ids', 'status', 'reason', 'updated_at',
@@ -535,6 +586,45 @@ class StageOnePartiesCommand extends Command
     private function stripFormatting(?string $value): ?string
     {
         return $value === null ? null : preg_replace('/[^A-Za-z0-9]/', '', $value);
+    }
+
+    /**
+     * Structurally validate a Malaysian IC (MyKad) number: 12 digits,
+     * formatted YYMMDD-PB-XXXX with separators already stripped. Rejects:
+     *   - anything not exactly 12 digits (e.g. "XX0000000000" — has letters)
+     *   - all-same-digit strings (e.g. "000000000000", "999999999999")
+     *   - a YYMMDD that isn't a real calendar date
+     *   - a place-of-birth/state code (digits 7-8) outside 01-59 (00 is
+     *     never issued; codes above 59 are reserved/unused)
+     * This is a format check only — it can't confirm the id belongs to this
+     * specific person, just that it isn't obvious placeholder junk.
+     */
+    private function isValidMyNationalId(string $value): bool
+    {
+        $digits = $this->stripFormatting($value);
+
+        if ($digits === null || ! preg_match('/^\d{12}$/', $digits)) {
+            return false;
+        }
+
+        if (preg_match('/^(\d)\1{11}$/', $digits) === 1) {
+            return false;
+        }
+
+        $yy     = (int) substr($digits, 0, 2);
+        $month  = (int) substr($digits, 2, 2);
+        $day    = (int) substr($digits, 4, 2);
+        $state  = (int) substr($digits, 6, 2);
+
+        if ($state < 1 || $state > 59) {
+            return false;
+        }
+
+        // Birth year could be this or last century — accept either.
+        $currentYy = (int) date('y');
+        $century   = $yy <= $currentYy ? 2000 : 1900;
+
+        return checkdate($month, $day, $century + $yy);
     }
 
     /**

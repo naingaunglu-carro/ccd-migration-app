@@ -28,14 +28,19 @@ use Illuminate\Support\Str;
  * An OCR row is accepted when its national id/passport matches the contact's
  * original_national_id, or — when the contact has none — when its
  * transaction has exactly one Contact party (no ambiguity about whose
- * document it is), latest transaction first. The latter is a guess, not a
- * verified identity check, so confidence_score/is_verified track which case
- * applied (1.00/true only for an id-cross-validated match, ~0.50/false for
- * the sole-Contact-party heuristic) — and ocr_name/ocr_name_slug/
- * ocr_person_national_id/ocr_person_passport_number are only populated when
- * verified, so an unverified guess never shows up as if it were reliable OCR
- * data (it still resolves identification_key below, though — it's the best
- * available signal even when unverified).
+ * document it is), latest transaction first. But id equality alone doesn't
+ * make it "verified": the OCR'd file could still be an unrelated document
+ * (e.g. a co-signer's paperwork misfiled on the transaction) that happens to
+ * carry a matching id, so is_verified additionally requires the OCR name to
+ * plausibly match the contact's own name (nameSlugsMatch() — a similarity
+ * check, not exact, since OCR text extraction has its own noise). confidence_score/
+ * is_verified: 1.00/true only when id-matched AND the names line up,
+ * ~0.50/false for the sole-Contact-party heuristic or an id match whose name
+ * doesn't correspond — and ocr_name/ocr_name_slug/ocr_person_national_id/
+ * ocr_person_passport_number are only populated when verified, so an
+ * unverified guess never shows up as if it were reliable OCR data (it still
+ * resolves identification_key below, though — it's the best available signal
+ * even when unverified).
  *
  * identification_key/status/reason are recomputed every run:
  * original_national_id wins outright when it's usable — either OCR
@@ -79,6 +84,16 @@ class StageOnePartiesCommand extends Command
     private const FLUSH_EVERY = 200;
 
     private const MALAYSIA_COUNTRY_ID = 49;
+
+    /**
+     * Minimum similar_text() percentage for an OCR-read name to count as the
+     * same person as the contact's own name — not an exact match (OCR noise
+     * is expected), but low enough only to admit genuine near-matches, not
+     * two different people who happen to share a common surname/connector
+     * word pattern (e.g. "ahmad-bin-ismail" vs "ahmad-bin-abdullah" scores
+     * ~70% despite being different people, so this is set above that).
+     */
+    private const NAME_SIMILARITY_THRESHOLD = 75.0;
 
     /**
      * Tokens that signal placeholder / junk free-text data rather than a real
@@ -283,7 +298,7 @@ class StageOnePartiesCommand extends Command
                 $originalDob         = isset($contact->date_of_birth) ? substr($contact->date_of_birth, 0, 10) : null;
             }
 
-            [$ocrMatch, $ocrReason, $ocrVerified] = $this->matchOcr($chunkTxIds, $ocrByTransaction, $partyCounts, $originalNationalId);
+            [$ocrMatch, $ocrReason, $ocrVerified] = $this->matchOcr($chunkTxIds, $ocrByTransaction, $partyCounts, $originalNationalId, $originalNameSlug);
 
             // Raw values off the matched candidate, used below to resolve
             // identification_key regardless of confidence (an unverified
@@ -504,17 +519,23 @@ class StageOnePartiesCommand extends Command
      *                        but its OCR name/passport fields were blank, or
      *                        (with a national id) no candidate's ids matched.
      *
-     * The third element is true only when the match was independently
-     * cross-validated (the candidate's id equalled the contact's national
-     * id) — false when accepted purely via the sole-Contact-party heuristic,
-     * since that's a guess, not a verified identity check.
+     * The third element (is_verified) is true only when the match was BOTH
+     * independently cross-validated (the candidate's id equalled the
+     * contact's national id) AND its name reasonably corresponds to the
+     * contact's own name (nameSlugsMatch()) — id equality alone isn't enough,
+     * since the OCR'd file could be an unrelated document (e.g. someone
+     * else's paperwork misfiled on the same transaction) that happens to
+     * carry a matching id string. False when accepted purely via the
+     * sole-Contact-party heuristic (no national id to cross-check at all) or
+     * when the name doesn't line up — either way that's not a verified
+     * identity match.
      *
      * @param  list<int>  $transactionIds
      * @param  \Illuminate\Support\Collection<int|string, \Illuminate\Support\Collection<int, object>>  $ocrByTransaction
      * @param  \Illuminate\Support\Collection<int|string, int>  $partyCounts
      * @return array{0: ?object, 1: ?string, 2: bool}
      */
-    private function matchOcr(array $transactionIds, $ocrByTransaction, $partyCounts, ?string $nationalId): array
+    private function matchOcr(array $transactionIds, $ocrByTransaction, $partyCounts, ?string $nationalId, string $nameSlug): array
     {
         $sawOcr         = false;
         $sawSingleParty = false;
@@ -526,15 +547,17 @@ class StageOnePartiesCommand extends Command
                 $isSingleParty  = ($partyCounts[$transactionId] ?? 0) === 1;
                 $sawSingleParty = $sawSingleParty || $isSingleParty;
 
-                $idVerified = $nationalId !== null && (
+                $idMatches = $nationalId !== null && (
                     $this->stripFormatting($candidate->ocr_person_national_id) === $nationalId
                     || $this->stripFormatting($candidate->ocr_person_passport_number) === $nationalId
                 );
 
-                $idMatches = $nationalId !== null ? $idVerified : $isSingleParty;
+                $accepted = $nationalId !== null ? $idMatches : $isSingleParty;
 
-                if ($idMatches && (filled($candidate->ocr_name) || filled($candidate->ocr_person_passport_number))) {
-                    return [$candidate, null, $idVerified];
+                if ($accepted && (filled($candidate->ocr_name) || filled($candidate->ocr_person_passport_number))) {
+                    $verified = $idMatches && $this->nameSlugsMatch($nameSlug, $candidate->ocr_slug);
+
+                    return [$candidate, null, $verified];
                 }
             }
         }
@@ -586,6 +609,27 @@ class StageOnePartiesCommand extends Command
     private function stripFormatting(?string $value): ?string
     {
         return $value === null ? null : preg_replace('/[^A-Za-z0-9]/', '', $value);
+    }
+
+    /**
+     * Whether an OCR-read name plausibly belongs to the same person as the
+     * contact's own name — NOT an exact match, since OCR text extraction
+     * introduces its own noise (spacing, "A/P" vs "AP", minor misreads), but
+     * a national id matching alone isn't sufficient either: the OCR'd file
+     * could be a different, unrelated document (e.g. a co-signer's paperwork
+     * misfiled on the same transaction) that just happens to carry the same
+     * id string. Uses character-level similarity (similar_text) — a
+     * heuristic, not a strict identity check.
+     */
+    private function nameSlugsMatch(string $nameSlug, ?string $ocrNameSlug): bool
+    {
+        if ($ocrNameSlug === null || $ocrNameSlug === '' || $nameSlug === '') {
+            return false;
+        }
+
+        similar_text($nameSlug, $ocrNameSlug, $percent);
+
+        return $percent >= self::NAME_SIMILARITY_THRESHOLD;
     }
 
     /**

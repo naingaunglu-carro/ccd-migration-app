@@ -60,7 +60,7 @@ class ImportTransactionFilesCommand extends Command
             fn ($column) => in_array($column, $columns, true),
         ));
 
-        $before      = DB::table(self::TABLE)->count();
+        $before       = DB::table(self::TABLE)->count();
         $totalRead    = 0;
         $totalSkipped = 0;
 
@@ -71,7 +71,7 @@ class ImportTransactionFilesCommand extends Command
 
             [$read, $skipped] = $this->importFile($file, $chunkSize, $columns, $stamps);
 
-            $totalRead    += $read;
+            $totalRead += $read;
             $totalSkipped += $skipped;
         }
 
@@ -112,6 +112,7 @@ class ImportTransactionFilesCommand extends Command
      *
      * @param  list<string>  $columns
      * @param  list<string>  $stamps
+     *
      * @return array{0: int, 1: int} [read, skipped]
      */
     private function importFile(string $path, int $chunkSize, array $columns, array $stamps): array

@@ -28,7 +28,7 @@ class DownloadTransactionFilesCommand extends Command
     /**
      * @var string
      */
-    protected $signature = 'ccd:download-transaction-files
+    protected $signature = 'ccd:download-transaction-files_dump
         {--country= : Only dealer_transactions for this dealer_countries.id or .country_code (e.g. 49 or my)}
         {--limit= : Max dealer_transactions to include (latest first); all when omitted}
         {--transaction-batch=500 : Transaction ids per remote files query}
@@ -46,7 +46,7 @@ class DownloadTransactionFilesCommand extends Command
         'id', 'uuid', 'slug', 'model_id', 'model_type', 'collection_name', 'name', 'file_name',
         'mime_type', 'disk', 'conversions_disk', 'size', 'original_size',
         'custom_properties', 'order_column', 'created_at',
-        'updated_at', 'deleted_at'
+        'updated_at', 'deleted_at',
     ];
 
     public function handle(): int
@@ -267,9 +267,7 @@ class TsvBatchWriter
     /** @var array<int, string> */
     private array $paths = [];
 
-    public function __construct(private readonly string $dir, private readonly ?int $maxRows)
-    {
-    }
+    public function __construct(private readonly string $dir, private readonly ?int $maxRows) {}
 
     public function setHeader(string $line): void
     {

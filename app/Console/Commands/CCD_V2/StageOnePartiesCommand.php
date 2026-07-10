@@ -3,6 +3,7 @@
 namespace App\Console\Commands\CCD_V2;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -270,14 +271,14 @@ class StageOnePartiesCommand extends Command
             // everything else (ocr_*, identification, status/reason) is
             // recomputed every run from the current OCR data.
             if ($existingRow !== null) {
-                $originalNameSlug   = $existingRow->original_name_slug;
-                $originalName       = $existingRow->original_name;
-                $originalFirstName  = $existingRow->original_first_name;
-                $originalLastName   = $existingRow->original_last_name;
+                $originalNameSlug    = $existingRow->original_name_slug;
+                $originalName        = $existingRow->original_name;
+                $originalFirstName   = $existingRow->original_first_name;
+                $originalLastName    = $existingRow->original_last_name;
                 $originalNationality = $existingRow->original_nationality;
-                $originalNationalId = $existingRow->original_national_id;
-                $originalGender     = $existingRow->original_gender;
-                $originalDob        = $existingRow->original_date_of_birth;
+                $originalNationalId  = $existingRow->original_national_id;
+                $originalGender      = $existingRow->original_gender;
+                $originalDob         = $existingRow->original_date_of_birth;
             } else {
                 $originalName = $contact->display_name
                     ?? $contact->name
@@ -322,8 +323,8 @@ class StageOnePartiesCommand extends Command
             // sole-Contact-party heuristic (a guess), null when there was no
             // OCR match at all to score.
             $confidenceScore = match (true) {
-                $ocrMatch === null => null,
-                $ocrVerified        => 1.00,
+                $ocrMatch === null   => null,
+                $ocrVerified         => 1.00,
                 default              => 0.50,
             };
             $isVerified = $ocrMatch !== null && $ocrVerified;
@@ -352,8 +353,8 @@ class StageOnePartiesCommand extends Command
                 : ((int) $rowCountryId === self::MALAYSIA_COUNTRY_ID ? $this->isValidMyNationalId($originalNationalId) : null);
 
             [$confidenceScoreForOriginal, $isOriginalVerified] = match (true) {
-                $originalNationalId === null   => [null, false],
-                $isVerified                    => [1.00, true],
+                $originalNationalId === null             => [null, false],
+                $isVerified                              => [1.00, true],
                 $originalNationalIdFormatValid === true  => [0.75, true],
                 $originalNationalIdFormatValid === false => [0.00, false],
                 // No country-specific rule to check against and no OCR
@@ -370,8 +371,8 @@ class StageOnePartiesCommand extends Command
                 && ($isVerified || $originalNationalIdFormatValid !== false);
 
             [$identificationKey, $identificationColumn, $status, $reason] = match (true) {
-                $originalNationalIdUsable => [$originalNationalId, 'national_id', 'identified', 'national_id'],
-                $ocrPassportRaw !== null  => [$ocrPassportRaw, 'passport_number', 'identified', 'ocr_passport_match'],
+                $originalNationalIdUsable    => [$originalNationalId, 'national_id', 'identified', 'national_id'],
+                $ocrPassportRaw !== null     => [$ocrPassportRaw, 'passport_number', 'identified', 'ocr_passport_match'],
                 $originalNationalId !== null => [null, null, 'unidentified', 'invalid_national_id_format'],
                 // $ocrReason is null when matchOcr() actually found a candidate
                 // (e.g. matched by name only) but it had no usable passport number.
@@ -397,39 +398,39 @@ class StageOnePartiesCommand extends Command
             $possiblePassportNumbers = $this->mergeValues($existingRow->possible_passport_numbers ?? null, $candidatePassports);
 
             $rows[] = [
-                'country_id'                 => $rowCountryId,
-                'reference_id'               => $contactId,
-                'reference_name'             => 'contact',
-                'ocr_name_slug'              => $ocrNameSlug,
-                'ocr_name'                   => $ocrName,
-                'ocr_person_nationality'     => $ocrNationality,
-                'ocr_person_national_id'     => $ocrNationalId,
-                'ocr_person_passport_number' => $ocrPassport,
-                'ocr_type'                   => $ocrType,
-                'confidence_score'           => $confidenceScore,
-                'is_verified'                => $isVerified,
-                'original_name_slug'         => $originalNameSlug,
-                'original_name'              => $originalName,
-                'original_first_name'        => $originalFirstName,
-                'original_last_name'         => $originalLastName,
-                'original_nationality'       => $originalNationality,
-                'original_national_id'       => $originalNationalId,
-                'original_passport_number'   => null, // dealer_contacts has no passport column
-                'original_gender'            => $originalGender,
-                'original_date_of_birth'     => $originalDob,
+                'country_id'                    => $rowCountryId,
+                'reference_id'                  => $contactId,
+                'reference_name'                => 'contact',
+                'ocr_name_slug'                 => $ocrNameSlug,
+                'ocr_name'                      => $ocrName,
+                'ocr_person_nationality'        => $ocrNationality,
+                'ocr_person_national_id'        => $ocrNationalId,
+                'ocr_person_passport_number'    => $ocrPassport,
+                'ocr_type'                      => $ocrType,
+                'confidence_score'              => $confidenceScore,
+                'is_verified'                   => $isVerified,
+                'original_name_slug'            => $originalNameSlug,
+                'original_name'                 => $originalName,
+                'original_first_name'           => $originalFirstName,
+                'original_last_name'            => $originalLastName,
+                'original_nationality'          => $originalNationality,
+                'original_national_id'          => $originalNationalId,
+                'original_passport_number'      => null, // dealer_contacts has no passport column
+                'original_gender'               => $originalGender,
+                'original_date_of_birth'        => $originalDob,
                 'confidence_score_for_original' => $confidenceScoreForOriginal,
-                'is_original_verified'       => $isOriginalVerified,
-                'identification_key'         => $identificationKey,
-                'identification_column'      => $identificationColumn,
-                'possible_names'             => $possibleNames,
-                'possible_national_ids'      => $possibleNationalIds,
-                'possible_passport_numbers'  => $possiblePassportNumbers,
-                'transaction_ids'            => $transactionIdsMerged,
-                'file_ids'                   => $fileIdsMerged,
-                'status'                     => $status,
-                'reason'                     => $reason,
-                'updated_at'                 => $now,
-                'created_at'                 => $existingRow->created_at ?? $now,
+                'is_original_verified'          => $isOriginalVerified,
+                'identification_key'            => $identificationKey,
+                'identification_column'         => $identificationColumn,
+                'possible_names'                => $possibleNames,
+                'possible_national_ids'         => $possibleNationalIds,
+                'possible_passport_numbers'     => $possiblePassportNumbers,
+                'transaction_ids'               => $transactionIdsMerged,
+                'file_ids'                      => $fileIdsMerged,
+                'status'                        => $status,
+                'reason'                        => $reason,
+                'updated_at'                    => $now,
+                'created_at'                    => $existingRow->created_at ?? $now,
             ];
         }
 
@@ -531,8 +532,9 @@ class StageOnePartiesCommand extends Command
      * identity match.
      *
      * @param  list<int>  $transactionIds
-     * @param  \Illuminate\Support\Collection<int|string, \Illuminate\Support\Collection<int, object>>  $ocrByTransaction
-     * @param  \Illuminate\Support\Collection<int|string, int>  $partyCounts
+     * @param  Collection<int|string, Collection<int, object>>  $ocrByTransaction
+     * @param  Collection<int|string, int>  $partyCounts
+     *
      * @return array{0: ?object, 1: ?string, 2: bool}
      */
     private function matchOcr(array $transactionIds, $ocrByTransaction, $partyCounts, ?string $nationalId, string $nameSlug): array
@@ -581,7 +583,8 @@ class StageOnePartiesCommand extends Command
      * confident single match (ocr_* columns) still comes from matchOcr().
      *
      * @param  list<int>  $transactionIds
-     * @param  \Illuminate\Support\Collection<int|string, \Illuminate\Support\Collection<int, object>>  $ocrByTransaction
+     * @param  Collection<int|string, Collection<int, object>>  $ocrByTransaction
+     *
      * @return array{0: list<string>, 1: list<string>, 2: list<string>}
      */
     private function collectOcrCandidates(array $transactionIds, $ocrByTransaction): array

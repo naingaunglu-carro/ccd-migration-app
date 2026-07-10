@@ -291,7 +291,7 @@ class MigrateTwoPartiesCommand extends Command
 
             $this->createOrUpdate('contact_point_party',
                 ['contact_point_id' => $contactPointId, 'party_id' => $partyId],
-                ['tenant_id' => $this->tenantId],
+                ['tenant_id'        => $this->tenantId],
             );
         }
     }

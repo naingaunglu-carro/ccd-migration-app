@@ -3,8 +3,8 @@
 namespace App\Console\Commands\CCD;
 
 use App\Console\Commands\CCD\Concerns\MigratesToCcd;
-use Illuminate\Console\Command;
 use Carbon\CarbonInterface;
+use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -213,7 +213,7 @@ class StagePartiesCommand extends Command
                 continue;
             }
 
-            $nationalId = $this->cleanIdentifier($contact->national_identity_number ?? null);
+            $nationalId             = $this->cleanIdentifier($contact->national_identity_number ?? null);
             [$ocrMatch, $ocrReason] = $this->matchOcr(
                 $transactionIdsByContact->get($contactId, collect()),
                 $ocrByTransaction,
@@ -237,8 +237,8 @@ class StagePartiesCommand extends Command
             // but couldn't be matched to them.
             [$identificationKey, $identificationColumn, $status, $reason] = match (true) {
                 $this->isIgnoredName($rawName) || $this->isIgnoredName($name) => [null, null, 'unidentified', 'ignored_name'],
-                $nationalId !== null => [$nationalId, 'person_national_id', 'identified', 'national_id'],
-                $passport !== null   => [$passport, 'person_passport_number', 'identified', 'ocr_passport_match'],
+                $nationalId !== null                                          => [$nationalId, 'person_national_id', 'identified', 'national_id'],
+                $passport !== null                                            => [$passport, 'person_passport_number', 'identified', 'ocr_passport_match'],
                 // $ocrReason is null when matchOcr() actually found a candidate
                 // (e.g. matched by name only) but it had no usable passport number.
                 default => [null, null, 'unidentified', $ocrReason ?? 'ocr_no_passport'],
@@ -299,6 +299,7 @@ class StagePartiesCommand extends Command
      * @param  Collection<int, int>  $transactionIds
      * @param  Collection<int|string, Collection<int, object>>  $ocrByTransaction
      * @param  Collection<int|string, int>  $partyCounts
+     *
      * @return array{0: ?object, 1: ?string}
      */
     private function matchOcr($transactionIds, $ocrByTransaction, $partyCounts, ?string $nationalId): array
@@ -310,7 +311,7 @@ class StagePartiesCommand extends Command
             foreach ($ocrByTransaction->get($transactionId, collect()) as $candidate) {
                 $sawOcr = true;
 
-                $isSingleParty = ($partyCounts[$transactionId] ?? 0) === 1;
+                $isSingleParty  = ($partyCounts[$transactionId] ?? 0) === 1;
                 $sawSingleParty = $sawSingleParty || $isSingleParty;
 
                 $idMatches = $nationalId !== null
@@ -399,10 +400,10 @@ class StagePartiesCommand extends Command
                     ->where('tenant_id', $tenantId)
                     ->where('identification_key', $key)
                     ->update([
-                        'identification_key'    => null,
-                        'identification_column' => null,
-                        'status'                => 'unidentified',
-                        'reason'                => 'quarantined_placeholder',
+                        'identification_key'     => null,
+                        'identification_column'  => null,
+                        'status'                 => 'unidentified',
+                        'reason'                 => 'quarantined_placeholder',
                         'updated_at'             => now(),
                     ]);
 

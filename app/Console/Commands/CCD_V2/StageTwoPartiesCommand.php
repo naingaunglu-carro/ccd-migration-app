@@ -216,11 +216,11 @@ class StageTwoPartiesCommand extends Command
 
         // A higher-confidence source row's name/person details win.
         if ($confidence > (float) ($existing->merged_confidence_score ?? 0)) {
-            $update['name']                   = $name;
-            $update['person_first_name']      = $personFirstName;
-            $update['person_last_name']       = $personLastName;
-            $update['person_gender']          = $row->original_gender;
-            $update['person_date_of_birth']   = $row->original_date_of_birth;
+            $update['name']                    = $name;
+            $update['person_first_name']       = $personFirstName;
+            $update['person_last_name']        = $personLastName;
+            $update['person_gender']           = $row->original_gender;
+            $update['person_date_of_birth']    = $row->original_date_of_birth;
             $update['merged_confidence_score'] = $confidence;
         }
 

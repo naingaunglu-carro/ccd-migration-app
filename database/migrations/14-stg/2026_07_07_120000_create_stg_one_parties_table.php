@@ -62,7 +62,7 @@ return new class extends Migration
             // an OCR-matched passport) — not merged across records yet.
             $table->string('identification_key')->nullable();
             $table->string('identification_column')->nullable(); // 'national_id' | 'passport_number'
-        
+
             $table->text('possible_names')->nullable(); // all names seen for this party, "|"-separated, latest first
             $table->text('possible_national_ids')->nullable(); // all national ids seen for this party, "|"-separated, latest first
             $table->text('possible_passport_numbers')->nullable(); // all passport numbers seen for

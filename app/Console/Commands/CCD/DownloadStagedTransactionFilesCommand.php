@@ -28,6 +28,14 @@ use Symfony\Component\Process\Process;
  * local file now exists on disk is marked downloaded_at/downloaded_path,
  * mirroring the same existence check the script itself uses to skip
  * already-downloaded files.
+ *
+ * Objects archived to Glacier/Deep Archive come back "denied" with
+ * InvalidObjectState — not a real failure, but they can't be fetched until
+ * restored via S3 RestoreObject. Every attempt's stderr is scanned for these
+ * and appended to a deduplicated restore-request list (--archived-log,
+ * default storage/logs/transaction-files-archived.log) so nothing gets lost
+ * even though the row stays un-downloaded (retries won't help — only an
+ * actual S3 restore will).
  */
 class DownloadStagedTransactionFilesCommand extends Command
 {
@@ -46,6 +54,7 @@ class DownloadStagedTransactionFilesCommand extends Command
         {--dry-run : Plan only — build the manifest but do not download}
         {--retries=2 : Re-run the download in place up to N times if it exits non-zero}
         {--status-log= : Path to append JSON-lines run status to (default storage/logs/transaction-files-download-status.jsonl)}
+        {--archived-log= : Path to a deduplicated restore-request list of archived (InvalidObjectState) S3 keys (default storage/logs/transaction-files-archived.log)}
         {--python= : Path to the venv python (default: .venv/bin/python)}';
 
     /**
@@ -193,8 +202,10 @@ class DownloadStagedTransactionFilesCommand extends Command
         }
 
         $statusLog   = $this->option('status-log') ?: storage_path('logs/transaction-files-download-status.jsonl');
+        $archivedLog = $this->option('archived-log') ?: storage_path('logs/transaction-files-archived.log');
         $maxAttempts = 1 + max(0, (int) $this->option('retries'));
         $exit        = 1;
+        $newArchived = 0;
 
         for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
             if ($attempt > 1) {
@@ -223,12 +234,22 @@ class DownloadStagedTransactionFilesCommand extends Command
                 'stats'        => $this->parseStats($output),
             ]);
 
+            if (! $this->option('dry-run')) {
+                $newArchived += $this->logArchivedKeys($archivedLog, $output);
+            }
+
             if ($exit === 0) {
                 break;
             }
         }
 
         @unlink($manifest);
+
+        if ($newArchived > 0) {
+            $this->newLine();
+            $this->warn("{$newArchived} file(s) are archived in S3 (InvalidObjectState) — not downloadable until restored.");
+            $this->warn("Restore-request list: {$archivedLog}");
+        }
 
         $updated = 0;
 
@@ -292,6 +313,43 @@ class DownloadStagedTransactionFilesCommand extends Command
         }
 
         file_put_contents($path, json_encode($entry) . "\n", FILE_APPEND | LOCK_EX);
+    }
+
+    /**
+     * Scan the python script's stderr for "[denied] <key> (InvalidObjectState)"
+     * lines — objects archived to Glacier/Deep Archive/Intelligent-Tiering
+     * Archive tier, which need an S3 RestoreObject request before they can be
+     * fetched, not just a retry — and append any not already recorded to a
+     * deduplicated restore-request list at $path (one S3 key per line, ready
+     * to feed into `aws s3api restore-object`). Returns how many were new.
+     */
+    private function logArchivedKeys(string $path, string $output): int
+    {
+        if (! preg_match_all('/^ \[denied\] (.+) \(InvalidObjectState\)$/m', $output, $matches)) {
+            return 0;
+        }
+
+        $found = array_unique($matches[1]);
+
+        $dir = dirname($path);
+
+        if (! is_dir($dir)) {
+            mkdir($dir, 0775, true);
+        }
+
+        $existing = is_file($path)
+            ? array_flip(array_filter(explode("\n", file_get_contents($path))))
+            : [];
+
+        $new = array_diff($found, array_keys($existing));
+
+        if ($new === []) {
+            return 0;
+        }
+
+        file_put_contents($path, implode("\n", $new) . "\n", FILE_APPEND | LOCK_EX);
+
+        return count($new);
     }
 
     /**
